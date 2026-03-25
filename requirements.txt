@@ -1,0 +1,25 @@
+# FastAPI and Server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Text-IF Dependencies
+# Core ML
+torch
+torchvision
+numpy
+opencv-python
+Pillow
+scikit-image
+scipy
+
+# CLIP and text processing
+ftfy
+regex
+tqdm
+einops
+openai-clip
+
+# Others
+imageio
+PyWavelets 
