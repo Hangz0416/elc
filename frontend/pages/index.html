@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作台 - 多模态智能感知系统</title>
+    
+    <!-- Three.js 导入映射 -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.157.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <!-- 样式文件 -->
+    <link rel="stylesheet" href="/frontend/css/main.css">
+    <link rel="stylesheet" href="/frontend/css/components.css">
+    <link rel="stylesheet" href="/frontend/css/modules.css">
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">🔬</div>
+            <div class="logo-text">多模态智能感知系统</div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>工作台</span>
+            </a>
+            <a href="#" class="nav-item" data-page="scenes">
+                <span class="nav-icon">🗂️</span>
+                <span>场景资产</span>
+            </a>
+            <a href="#" class="nav-item" data-page="fusion">
+                <span class="nav-icon">🔀</span>
+                <span>图像融合</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reconstruction">
+                <span class="nav-icon">🧊</span>
+                <span>三维重建</span>
+            </a>
+            <a href="#" class="nav-item" data-page="segmentation">
+                <span class="nav-icon">🎯</span>
+                <span>场景分割</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reports">
+                <span class="nav-icon">📄</span>
+                <span>报告中心</span>
+            </a>
+            <a href="#" class="nav-item" data-page="admin" id="adminLink" style="display: none;">
+                <span class="nav-icon">⚙️</span>
+                <span>系统管理</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">加载中...</div>
+                    <div class="user-role" id="userRole">-</div>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <!-- 右侧内容区域 -->
+    <div class="content-area">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <div class="breadcrumb">
+                <span>首页</span>
+                <span>/</span>
+                <span class="breadcrumb-item" id="pageTitle">工作台</span>
+            </div>
+            <div class="top-actions">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="搜索" id="globalSearch">
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content" id="mainContent">
+            <!-- 欢迎卡片 -->
+            <div class="welcome-card">
+                <div class="welcome-header">
+                    <div>
+                        <div class="welcome-title">下午好，<span id="welcomeUserName">admin</span></div>
+                        <div class="welcome-subtitle">祝您开心每一天！</div>
+                    </div>
+                    <div class="welcome-time" id="currentTime">2024-12-26 14:30:45</div>
+                </div>
+                <div class="welcome-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">☀️</span>
+                        <div class="stat-info">
+                            <span class="stat-label">今日</span>
+                            <span class="stat-value">晴天</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🌡️</span>
+                        <div class="stat-info">
+                            <span class="stat-label">温度</span>
+                            <span class="stat-value">15°C</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">💨</span>
+                        <div class="stat-info">
+                            <span class="stat-label">风力</span>
+                            <span class="stat-value">3级</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据概览 -->
+            <div class="section-header">
+                <span class="section-icon">📈</span>
+                <span class="section-title">数据概览</span>
+            </div>
+
+            <!-- KPI指标卡片 -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">场景工厂</div>
+                    <div class="kpi-value green" id="totalScenes">0 <span style="font-size: 16px;">个</span></div>
+                    <div class="kpi-trend">本月新增 0 个</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">加工点</div>
+                    <div class="kpi-value green" id="totalImages">0 <span style="font-size: 16px;">个</span></div>
+                    <div class="kpi-trend">今日处理 0 张</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">重建任务</div>
+                    <div class="kpi-value orange" id="pendingTasks">0 <span style="font-size: 16px;">单</span></div>
+                    <div class="kpi-trend">队列中任务</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">累积时长</div>
+                    <div class="kpi-value green" id="totalHours">0 <span style="font-size: 16px;">时</span></div>
+                    <div class="kpi-trend">本周新增 0 时</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">重建完成</div>
+                    <div class="kpi-value blue" id="completedTasks">0 <span style="font-size: 16px;">个</span></div>
+                    <div class="kpi-trend">完成率 0%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">报告数量</div>
+                    <div class="kpi-value green" id="totalReports">0 <span style="font-size: 16px;">份</span></div>
+                    <div class="kpi-trend">本周新增 0 份</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">场景数量</div>
+                    <div class="kpi-value blue" id="totalScenes2">0 <span style="font-size: 16px;">个</span></div>
+                    <div class="kpi-trend">活跃场景</div>
+                </div>
+            </div>
+
+            <!-- 快捷操作 -->
+            <div class="content-card">
+                <div class="card-title">
+                    <span>⚡</span>
+                    <span>快捷操作</span>
+                </div>
+                <div class="action-grid">
+                    <a href="#" class="action-btn" data-page="scenes">
+                        <div class="action-btn-icon">➕</div>
+                        <div class="action-btn-text">新建场景</div>
+                    </a>
+                    <a href="#" class="action-btn" data-page="fusion">
+                        <div class="action-btn-icon">🔀</div>
+                        <div class="action-btn-text">图像融合</div>
+                    </a>
+                    <a href="#" class="action-btn" data-page="reconstruction">
+                        <div class="action-btn-icon">🧊</div>
+                        <div class="action-btn-text">三维重建</div>
+                    </a>
+                    <a href="#" class="action-btn" data-page="reports">
+                        <div class="action-btn-icon">📄</div>
+                        <div class="action-btn-text">查看报告</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最近项目 -->
+            <div class="content-card">
+                <div class="card-title">
+                    <span>🕒</span>
+                    <span>最近项目</span>
+                </div>
+                <div class="project-list" id="recentProjects">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div>暂无最近项目</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用脚本 -->
+    <script type="module" src="/frontend/js/app.js"></script>
+</body>
+</html>

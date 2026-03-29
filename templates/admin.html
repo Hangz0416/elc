@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 - 多模态智能感知系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* 标签页 */
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .tab-header {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .search-box input,
+        .search-box select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee3344;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        /* 表格 */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        /* 状态标签 */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 消息提示 */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideInRight 0.3s;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.active {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid #48bb78;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ff4757;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                </svg>
+                系统管理
+            </div>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <span id="username"></span>
+                    <span class="badge badge-info" id="userRole"></span>
+                </div>
+                <button class="btn-logout" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 标签页 -->
+        <div class="tabs">
+            <div class="tab-header">
+                <button class="tab-button active" onclick="switchTab('users')">用户管理</button>
+                <button class="tab-button" onclick="switchTab('roles')">角色管理</button>
+                <button class="tab-button" onclick="switchTab('logs')">日志审计</button>
+            </div>
+
+            <!-- 用户管理标签页 -->
+            <div id="users-tab" class="tab-content active">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input type="text" id="userSearch" placeholder="搜索用户名..." onkeyup="searchUsers()">
+                        <select id="roleFilter" onchange="searchUsers()">
+                            <option value="">所有角色</option>
+                        </select>
+                        <select id="statusFilter" onchange="searchUsers()">
+                            <option value="">所有状态</option>
+                            <option value="active">启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="showCreateUserModal()">
+                        <span>+</span> 新建用户
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户名</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>最后登录</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">
+                                    <div class="spinner"></div>
+                                    加载中...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="usersPagination"></div>
+            </div>
+
+            <!-- 角色管理标签页 -->
+            <div id="roles-tab" class="tab-content">
+                <div class="toolbar">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="showCreateRoleModal()">
+                        <span>+</span> 新建角色
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>角色名称</th>
+                                <th>描述</th>
+                                <th>权限</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesTableBody">
+                            <tr>
+                                <td colspan="6" class="loading">
+                                    <div class="spinner"></div>
+                                    加载中...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 日志审计标签页 -->
+            <div id="logs-tab" class="tab-content">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <select id="moduleFilter" onchange="searchLogs()">
+                            <option value="">所有模块</option>
+                            <option value="auth">认证</option>
+                            <option value="users">用户管理</option>
+                            <option value="roles">角色管理</option>
+                            <option value="fusion">图像融合</option>
+                            <option value="reconstruction">三维重建</option>
+                            <option value="segmentation">场景分割</option>
+                        </select>
+                        <select id="logStatusFilter" onchange="searchLogs()">
+                            <option value="">所有状态</option>
+                            <option value="success">成功</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="exportLogs()">
+                        导出日志
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>用户</th>
+                                <th>模块</th>
+                                <th>操作</th>
+                                <th>状态</th>
+                                <th>IP地址</th>
+                                <th>详情</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">
+                                    <div class="spinner"></div>
+                                    加载中...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="logsPagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- 用户模态框 -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">新建用户</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label>用户名 *</label>
+                        <input type="text" id="userUsername" required>
+                    </div>
+                    <div class="form-group" id="passwordGroup">
+                        <label>密码 *</label>
+                        <input type="password" id="userPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label>角色 *</label>
+                        <select id="userRole" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>状态 *</label>
+                        <select id="userStatus" required>
+                            <option value="active">启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUserModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveUser()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 角色模态框 -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="roleModalTitle">新建角色</h3>
+                <button class="modal-close" onclick="closeRoleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <input type="hidden" id="roleId">
+                    <div class="form-group">
+                        <label>角色名称 *</label>
+                        <input type="text" id="roleName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <input type="text" id="roleDescription">
+                    </div>
+                    <div class="form-group">
+                        <label>权限配置</label>
+                        <div id="permissionsConfig"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRoleModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveRole()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 全局变量
+    let currentUser = null;
+    let token = null;
+    let currentPage = {
+        users: 1,
+        logs: 1
+    };
+    const pageSize = 20;
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 检查登录状态
+        token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        try {
+            const response = await fetch('/api/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('未授权');
+            }
+
+            const data = await response.json();
+            currentUser = data.data;
+
+            // 显示用户信息
+            document.getElementById('username').textContent = currentUser.username;
+            document.getElementById('userRole').textContent = currentUser.role.description;
+            document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+
+            // 检查权限
+            if (!hasPermission('users', 'read') && !hasPermission('logs', 'read')) {
+                showToast('您没有访问系统管理的权限', 'error');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+                return;
+            }
+
+            // 加载数据
+            await loadRoles();
+            await loadUsers();
+            await loadLogs();
+
+        } catch (error) {
+            console.error('获取用户信息失败:', error);
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+    });
+
+    // 权限检查
+    function hasPermission(module, action) {
+        if (!currentUser || !currentUser.role) return false;
+        const permissions = currentUser.role.permissions;
+        
+        // 管理员拥有所有权限
+        if (permissions.all === true) return true;
+        
+        const modulePerm = permissions[module];
+        if (!modulePerm) return false;
+        
+        if (typeof modulePerm === 'string') {
+            if (action === 'read' && modulePerm.includes('r')) return true;
+            if (action === 'write' && modulePerm.includes('w')) return true;
+        }
+        
+        if (typeof modulePerm === 'boolean' && modulePerm) return true;
+        
+        return false;
+    }
+
+    // 标签页切换
+    function switchTab(tabName) {
+        // 更新标签按钮状态
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // 更新标签内容
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        // 加载对应数据
+        if (tabName === 'users') {
+            loadUsers();
+        } else if (tabName === 'roles') {
+            loadRoles();
+        } else if (tabName === 'logs') {
+            loadLogs();
+        }
+    }
+
+    // ==================== 用户管理 ====================
+
+    async function loadUsers(page = 1) {
+        if (!hasPermission('users', 'read')) {
+            document.getElementById('usersTableBody').innerHTML = `
+                <tr><td colspan="7" class="empty-state">您没有查看用户的权限</td></tr>
+            `;
+            return;
+        }
+
+        const username = document.getElementById('userSearch')?.value || '';
+        const roleId = document.getElementById('roleFilter')?.value || '';
+        const status = document.getElementById('statusFilter')?.value || '';
+
+        try {
+            const params = new URLSearchParams({
+                page,
+                page_size: pageSize
+            });
+            if (username) params.append('username', username);
+            if (roleId) params.append('role_id', roleId);
+            if (status) params.append('status', status);
+
+            const response = await fetch(`/api/users?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                displayUsers(data.data.users);
+                displayPagination('users', data.data.page, data.data.page_size, data.data.total);
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            console.error('加载用户失败:', error);
+            showToast('加载用户失败: ' + error.message, 'error');
+        }
+    }
+
+    function displayUsers(users) {
+        const tbody = document.getElementById('usersTableBody');
+        
+        if (users.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7" class="empty-state">暂无用户数据</td></tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.role_name || '-'}</td>
+                <td>
+                    <span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                        ${user.status === 'active' ? '启用' : '禁用'}
+                    </span>
+                </td>
+                <td>${formatDateTime(user.created_at)}</td>
+                <td>${user.last_login ? formatDateTime(user.last_login) : '-'}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${hasPermission('users', 'write') ? `
+                            <button class="btn btn-sm btn-secondary" onclick="editUser(${user.id})">编辑</button>
+                            <button class="btn btn-sm btn-secondary" onclick="resetPassword(${user.id})">重置密码</button>
+                            ${user.role_name !== 'admin' ? `
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id}, '${user.username}')">删除</button>
+                            ` : ''}
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function searchUsers() {
+        currentPage.users = 1;
+        loadUsers(1);
+    }
+
+    function showCreateUserModal() {
+        if (!hasPermission('users', 'write')) {
+            showToast('您没有创建用户的权限', 'error');
+            return;
+        }
+
+        document.getElementById('userModalTitle').textContent = '新建用户';
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('passwordGroup').style.display = 'block';
+        document.getElementById('userPassword').required = true;
+        document.getElementById('userModal').classList.add('active');
+    }
+
+    async function editUser(userId) {
+        if (!hasPermission('users', 'write')) {
+            showToast('您没有编辑用户的权限', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                const user = data.data;
+                document.getElementById('userModalTitle').textContent = '编辑用户';
+                document.getElementById('userId').value = user.id;
+                document.getElementById('userUsername').value = user.username;
+                document.getElementById('userRole').value = user.role_id;
+                document.getElementById('userStatus').value = user.status;
+                document.getElementById('passwordGroup').style.display = 'none';
+                document.getElementById('userPassword').required = false;
+                document.getElementById('userModal').classList.add('active');
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('获取用户信息失败: ' + error.message, 'error');
+        }
+    }
+
+    async function saveUser() {
+        const userId = document.getElementById('userId').value;
+        const username = document.getElementById('userUsername').value;
+        const password = document.getElementById('userPassword').value;
+        const roleId = parseInt(document.getElementById('userRole').value);
+        const status = document.getElementById('userStatus').value;
+
+        if (!username || !roleId) {
+            showToast('请填写必填项', 'error');
+            return;
+        }
+
+        if (!userId && !password) {
+            showToast('请输入密码', 'error');
+            return;
+        }
+
+        try {
+            let response;
+            if (userId) {
+                // 更新用户
+                response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, role_id: roleId, status })
+                });
+            } else {
+                // 创建用户
+                response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password, role_id: roleId, status })
+                });
+            }
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast(userId ? '用户更新成功' : '用户创建成功', 'success');
+                closeUserModal();
+                loadUsers(currentPage.users);
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('保存失败: ' + error.message, 'error');
+        }
+    }
+
+    async function resetPassword(userId) {
+        const newPassword = prompt('请输入新密码（至少8位，包含字母和数字）:');
+        if (!newPassword) return;
+
+        if (newPassword.length < 8) {
+            showToast('密码长度至少为8位', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${userId}/reset-password`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ new_password: newPassword })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast('密码重置成功', 'success');
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('重置密码失败: ' + error.message, 'error');
+        }
+    }
+
+    async function deleteUser(userId, username) {
+        if (!confirm(`确定要删除用户 "${username}" 吗？此操作不可恢复。`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast('用户删除成功', 'success');
+                loadUsers(currentPage.users);
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('删除失败: ' + error.message, 'error');
+        }
+    }
+
+    function closeUserModal() {
+        document.getElementById('userModal').classList.remove('active');
+    }
+
+    // ==================== 角色管理 ====================
+
+    async function loadRoles() {
+        try {
+            const response = await fetch('/api/roles', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                // 更新角色筛选下拉框
+                const roleFilter = document.getElementById('roleFilter');
+                if (roleFilter) {
+                    roleFilter.innerHTML = '<option value="">所有角色</option>' +
+                        data.data.map(role => `<option value="${role.id}">${role.description}</option>`).join('');
+                }
+
+                // 更新用户表单中的角色下拉框
+                const userRole = document.getElementById('userRole');
+                if (userRole) {
+                    userRole.innerHTML = data.data
+                        .filter(role => role.name !== 'admin')
+                        .map(role => `<option value="${role.id}">${role.description}</option>`).join('');
+                }
+
+                // 显示角色列表
+                displayRoles(data.data);
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            console.error('加载角色失败:', error);
+            showToast('加载角色失败: ' + error.message, 'error');
+        }
+    }
+
+    function displayRoles(roles) {
+        const tbody = document.getElementById('rolesTableBody');
+        
+        if (roles.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="6" class="empty-state">暂无角色数据</td></tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = roles.map(role => `
+            <tr>
+                <td>${role.id}</td>
+                <td>${role.description}</td>
+                <td>${role.description || '-'}</td>
+                <td><code style="font-size: 12px;">${JSON.stringify(role.permissions).substring(0, 50)}...</code></td>
+                <td>${formatDateTime(role.created_at)}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${hasPermission('roles', 'write') && role.name !== 'admin' ? `
+                            <button class="btn btn-sm btn-secondary" onclick="editRole(${role.id})">编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRole(${role.id}, '${role.name}')">删除</button>
+                        ` : '-'}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function showCreateRoleModal() {
+        if (!hasPermission('roles', 'write')) {
+            showToast('您没有创建角色的权限', 'error');
+            return;
+        }
+
+        document.getElementById('roleModalTitle').textContent = '新建角色';
+        document.getElementById('roleForm').reset();
+        document.getElementById('roleId').value = '';
+        renderPermissionsConfig({});
+        document.getElementById('roleModal').classList.add('active');
+    }
+
+    async function editRole(roleId) {
+        if (!hasPermission('roles', 'write')) {
+            showToast('您没有编辑角色的权限', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/roles/${roleId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                const role = data.data;
+                document.getElementById('roleModalTitle').textContent = '编辑角色';
+                document.getElementById('roleId').value = role.id;
+                document.getElementById('roleName').value = role.name;
+                document.getElementById('roleDescription').value = role.description || '';
+                renderPermissionsConfig(role.permissions);
+                document.getElementById('roleModal').classList.add('active');
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('获取角色信息失败: ' + error.message, 'error');
+        }
+    }
+
+    function renderPermissionsConfig(permissions) {
+        const modules = [
+            { key: 'fusion', label: '图像融合' },
+            { key: 'reconstruction', label: '三维重建' },
+            { key: 'segmentation', label: '场景分割' },
+            { key: 'scenes', label: '场景管理' },
+            { key: 'reports', label: '报告查看' }
+        ];
+
+        const container = document.getElementById('permissionsConfig');
+        container.innerHTML = modules.map(module => `
+            <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" 
+                           id="perm_${module.key}_r" 
+                           ${permissions[module.key]?.includes('r') ? 'checked' : ''}>
+                    <span>${module.label} - 读权限</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                    <input type="checkbox" 
+                           id="perm_${module.key}_w" 
+                           ${permissions[module.key]?.includes('w') ? 'checked' : ''}>
+                    <span>${module.label} - 写权限</span>
+                </label>
+            </div>
+        `).join('');
+    }
+
+    function getPermissionsFromForm() {
+        const modules = ['fusion', 'reconstruction', 'segmentation', 'scenes', 'reports'];
+        const permissions = {};
+
+        modules.forEach(module => {
+            const read = document.getElementById(`perm_${module}_r`)?.checked;
+            const write = document.getElementById(`perm_${module}_w`)?.checked;
+            
+            if (read || write) {
+                let perm = '';
+                if (read) perm += 'r';
+                if (write) perm += 'w';
+                permissions[module] = perm;
+            }
+        });
+
+        return permissions;
+    }
+
+    async function saveRole() {
+        const roleId = document.getElementById('roleId').value;
+        const name = document.getElementById('roleName').value;
+        const description = document.getElementById('roleDescription').value;
+        const permissions = getPermissionsFromForm();
+
+        if (!name) {
+            showToast('请输入角色名称', 'error');
+            return;
+        }
+
+        try {
+            let response;
+            if (roleId) {
+                // 更新角色
+                response = await fetch(`/api/roles/${roleId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, description, permissions })
+                });
+            } else {
+                // 创建角色
+                response = await fetch('/api/roles', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, description, permissions })
+                });
+            }
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast(roleId ? '角色更新成功' : '角色创建成功', 'success');
+                closeRoleModal();
+                loadRoles();
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('保存失败: ' + error.message, 'error');
+        }
+    }
+
+    async function deleteRole(roleId, roleName) {
+        if (!confirm(`确定要删除角色 "${roleName}" 吗？此操作不可恢复。`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/roles/${roleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast('角色删除成功', 'success');
+                loadRoles();
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            showToast('删除失败: ' + error.message, 'error');
+        }
+    }
+
+    function closeRoleModal() {
+        document.getElementById('roleModal').classList.remove('active');
+    }
+
+    // ==================== 日志审计 ====================
+
+    async function loadLogs(page = 1) {
+        if (!hasPermission('logs', 'read')) {
+            document.getElementById('logsTableBody').innerHTML = `
+                <tr><td colspan="7" class="empty-state">您没有查看日志的权限</td></tr>
+            `;
+            return;
+        }
+
+        const module = document.getElementById('moduleFilter')?.value || '';
+        const status = document.getElementById('logStatusFilter')?.value || '';
+
+        try {
+            const params = new URLSearchParams({
+                page,
+                page_size: pageSize
+            });
+            if (module) params.append('module', module);
+            if (status) params.append('status', status);
+
+            const response = await fetch(`/api/logs?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                displayLogs(data.data.logs);
+                displayPagination('logs', data.data.page, data.data.page_size, data.data.total);
+            } else {
+                throw new Error(data.message || data.detail);
+            }
+        } catch (error) {
+            console.error('加载日志失败:', error);
+            showToast('加载日志失败: ' + error.message, 'error');
+        }
+    }
+
+    function displayLogs(logs) {
+        const tbody = document.getElementById('logsTableBody');
+        
+        if (logs.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7" class="empty-state">暂无日志数据</td></tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = logs.map(log => `
+            <tr>
+                <td>${formatDateTime(log.created_at)}</td>
+                <td>${log.username || '-'}</td>
+                <td>${log.module}</td>
+                <td>${log.action}</td>
+                <td>
+                    <span class="badge ${log.status === 'success' ? 'badge-success' : 'badge-danger'}">
+                        ${log.status === 'success' ? '成功' : '失败'}
+                    </span>
+                </td>
+                <td>${log.ip_address || '-'}</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                    title="${log.details || '-'}">
+                    ${log.details || '-'}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function searchLogs() {
+        currentPage.logs = 1;
+        loadLogs(1);
+    }
+
+    async function exportLogs() {
+        if (!hasPermission('logs', 'read')) {
+            showToast('您没有导出日志的权限', 'error');
+            return;
+        }
+
+        const module = document.getElementById('moduleFilter')?.value || '';
+        const status = document.getElementById('logStatusFilter')?.value || '';
+
+        try {
+            const params = new URLSearchParams({ format: 'csv' });
+            if (module) params.append('module', module);
+            if (status) params.append('status', status);
+
+            const response = await fetch(`/api/logs/export?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showToast('日志导出成功', 'success');
+            } else {
+                throw new Error('导出失败');
+            }
+        } catch (error) {
+            showToast('导出日志失败: ' + error.message, 'error');
+        }
+    }
+
+    // ==================== 工具函数 ====================
+
+    function displayPagination(type, page, pageSize, total) {
+        const totalPages = Math.ceil(total / pageSize);
+        const container = document.getElementById(`${type}Pagination`);
+        
+        container.innerHTML = `
+            <button onclick="changePage('${type}', ${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+            <span class="page-info">第 ${page} / ${totalPages} 页，共 ${total} 条</span>
+            <button onclick="changePage('${type}', ${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+        `;
+    }
+
+    function changePage(type, page) {
+        currentPage[type] = page;
+        if (type === 'users') {
+            loadUsers(page);
+        } else if (type === 'logs') {
+            loadLogs(page);
+        }
+    }
+
+    function formatDateTime(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        toastMessage.textContent = message;
+        toast.className = `toast ${type} active`;
+        
+        setTimeout(() => {
+            toast.classList.remove('active');
+        }, 3000);
+    }
+
+    function logout() {
+        if (confirm('确定要退出登录吗？')) {
+            // 调用登出API
+            fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }).finally(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+            });
+        }
+    }
+    </script>
+</body>
+</html>

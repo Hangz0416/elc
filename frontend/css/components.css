@@ -1,0 +1,343 @@
+/* 组件样式 */
+
+/* 欢迎卡片 */
+.welcome-card {
+    background: white;
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    border: 1px solid #f0f0f0;
+}
+
+.welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.welcome-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.85);
+    margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+    font-size: 14px;
+    color: rgba(0,0,0,0.45);
+}
+
+.welcome-time {
+    font-size: 14px;
+    color: rgba(0,0,0,0.45);
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-icon {
+    font-size: 24px;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: rgba(0,0,0,0.45);
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.85);
+}
+
+/* 数据概览标题 */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.section-icon {
+    font-size: 18px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.85);
+}
+
+/* KPI卡片网格 */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 2px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+}
+
+.kpi-label {
+    font-size: 14px;
+    color: rgba(0,0,0,0.45);
+    margin-bottom: 8px;
+}
+
+.kpi-value {
+    font-size: 30px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.85);
+    margin-bottom: 8px;
+}
+
+.kpi-value.green {
+    color: #52c41a;
+}
+
+.kpi-value.blue {
+    color: #1890ff;
+}
+
+.kpi-value.orange {
+    color: #fa8c16;
+}
+
+.kpi-trend {
+    font-size: 14px;
+    color: rgba(0,0,0,0.45);
+}
+
+/* 内容卡片 */
+.content-card {
+    background: white;
+    border-radius: 2px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    margin-bottom: 16px;
+    border: 1px solid #f0f0f0;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.85);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 快捷操作网格 */
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.action-btn {
+    padding: 20px 16px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: rgba(0,0,0,0.85);
+    background: #fafafa;
+}
+
+.action-btn:hover {
+    border-color: #40a9ff;
+    color: #40a9ff;
+    background: white;
+}
+
+.action-btn-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.action-btn-text {
+    font-size: 14px;
+}
+
+/* 最近项目列表 */
+.project-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-item {
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.project-item:last-child {
+    border-bottom: none;
+}
+
+.project-item:hover {
+    background: #fafafa;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin: 0 -16px;
+}
+
+.project-info {
+    flex: 1;
+}
+
+.project-name {
+    font-size: 14px;
+    color: rgba(0,0,0,0.85);
+    margin-bottom: 4px;
+}
+
+.project-meta {
+    font-size: 12px;
+    color: rgba(0,0,0,0.45);
+}
+
+.project-status {
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+
+.status-completed {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.status-processing {
+    background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+}
+
+.status-pending {
+    background: #fff7e6;
+    color: #fa8c16;
+    border: 1px solid #ffd591;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: rgba(0,0,0,0.25);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+/* 按钮样式 */
+.btn-process {
+    width: 100%;
+    padding: 12px;
+    background: #1890ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn-process:hover:not(:disabled) {
+    background: #40a9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.btn-process:disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #666;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+/* 加载动画 */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #1890ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 进度条 */
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 15px 0;
+    display: none;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #1890ff;
+    width: 0%;
+    transition: width 0.3s ease;
+}

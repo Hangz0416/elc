@@ -3,6 +3,13 @@ fastapi
 uvicorn[standard]
 python-multipart
 
+# Authentication and Database
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+pymysql  # MySQL数据库驱动
+
 # Text-IF Dependencies
 # Core ML
 torch
@@ -22,4 +29,5 @@ openai-clip
 
 # Others
 imageio
-PyWavelets 
+PyWavelets
+requests  # For testing 
