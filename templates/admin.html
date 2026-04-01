@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系统管理 - 多模态智能感知系统</title>
+    <title>系统管理 - 基于多模态图像融合的三维重建与智能感知一体化系统</title>
     <style>
         * {
             margin: 0;
@@ -38,11 +38,25 @@
         }
 
         .navbar-brand {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 10px;
+            max-width: 700px;
+            white-space: nowrap;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
         }
 
         .navbar-user {
@@ -523,10 +537,8 @@
     <nav class="navbar">
         <div class="navbar-content">
             <div class="navbar-brand">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                </svg>
-                系统管理
+                <div class="brand-icon">MS</div>
+                基于多模态图像融合的三维重建与智能感知一体化系统
             </div>
             <div class="navbar-user">
                 <div class="user-info">

@@ -209,3 +209,134 @@ async def logout(
         code=200,
         message="登出成功"
     )
+
+
+@router.post("/verify-username", response_model=Response)
+async def verify_username(
+    data: dict,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    验证用户名是否存在（用于忘记密码流程）
+    
+    - **username**: 用户名
+    """
+    username = data.get("username")
+    
+    if not username:
+        raise HTTPException(
+            status_code=400,
+            detail="用户名不能为空"
+        )
+    
+    # 查询用户是否存在
+    user = db.query(User).filter(User.username == username).first()
+    
+    if not user:
+        # 记录验证失败日志
+        log_audit(
+            db=db,
+            user_id=None,
+            module="auth",
+            action="verify_username",
+            ip_address=get_client_ip(request),
+            status="failed",
+            details=f"用户名不存在: {username}"
+        )
+        raise HTTPException(
+            status_code=404,
+            detail="用户名不存在"
+        )
+    
+    # 记录验证成功日志
+    log_audit(
+        db=db,
+        user_id=user.id,
+        module="auth",
+        action="verify_username",
+        ip_address=get_client_ip(request),
+        status="success"
+    )
+    
+    return Response(
+        code=200,
+        message="用户验证成功",
+        data={"username": username}
+    )
+
+
+@router.post("/reset-password", response_model=Response)
+async def reset_password(
+    data: dict,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    重置密码（用于忘记密码流程）
+    
+    - **username**: 用户名
+    - **new_password**: 新密码
+    """
+    username = data.get("username")
+    new_password = data.get("new_password")
+    
+    if not username or not new_password:
+        raise HTTPException(
+            status_code=400,
+            detail="用户名和新密码不能为空"
+        )
+    
+    # 验证密码强度
+    if len(new_password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="密码长度至少为8位"
+        )
+    
+    import re
+    if not re.search(r'[a-zA-Z]', new_password) or not re.search(r'\d', new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="密码必须包含字母和数字"
+        )
+    
+    # 查询用户
+    user = db.query(User).filter(User.username == username).first()
+    
+    if not user:
+        # 记录重置失败日志
+        log_audit(
+            db=db,
+            user_id=None,
+            module="auth",
+            action="reset_password",
+            ip_address=get_client_ip(request),
+            status="failed",
+            details=f"用户名不存在: {username}"
+        )
+        raise HTTPException(
+            status_code=404,
+            detail="用户名不存在"
+        )
+    
+    # 更新密码
+    user.password_hash = get_password_hash(new_password)
+    db.commit()
+    
+    # 记录重置成功日志
+    log_audit(
+        db=db,
+        user_id=user.id,
+        module="auth",
+        action="reset_password",
+        ip_address=get_client_ip(request),
+        status="success",
+        details="密码重置成功"
+    )
+    
+    return Response(
+        code=200,
+        message="密码重置成功",
+        data={"username": username}
+    )

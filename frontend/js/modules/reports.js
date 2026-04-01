@@ -197,14 +197,38 @@ async function loadScenesList() {
 // ========== 加载报告数据 ==========
 async function loadReportsData() {
     try {
-        // 模拟报告数据（实际应该从后端API获取）
-        const reports = generateMockReports();
+        const typeFilter = document.getElementById('reportTypeFilter')?.value || 'all';
+        const sceneFilter = document.getElementById('reportSceneFilter')?.value || '';
+        const dateFilter = document.getElementById('reportDateFilter')?.value || '';
+        
+        // 构建查询参数
+        const params = new URLSearchParams({
+            page: currentReportPage,
+            page_size: reportPageSize
+        });
+        
+        if (typeFilter !== 'all') params.append('type', typeFilter);
+        if (sceneFilter) params.append('scene', sceneFilter);
+        if (dateFilter) params.append('date', dateFilter);
+        
+        // 从后端API获取报告数据
+        const response = await fetch(`/api/reports?${params.toString()}`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取报告数据失败');
+        }
+        
+        const result = await response.json();
+        const reports = result.data.reports;
+        const total = result.data.total;
         
         // 更新统计数据
-        updateReportStatistics(reports);
+        await updateReportStatistics();
         
         // 显示报告列表
-        displayReportsList(reports);
+        displayReportsList(reports, total);
         
     } catch (error) {
         console.error('加载报告数据失败:', error);
@@ -217,55 +241,29 @@ async function loadReportsData() {
     }
 }
 
-// ========== 生成模拟报告数据 ==========
-function generateMockReports() {
-    const types = ['fusion', 'reconstruction', 'segmentation'];
-    const scenes = ['Building', 'Factory', 'Warehouse', 'DailyStuff', 'Dimsum'];
-    const statuses = ['completed', 'processing', 'failed'];
-    const reports = [];
-    
-    for (let i = 0; i < 30; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const scene = scenes[Math.floor(Math.random() * scenes.length)];
-        const status = i < 25 ? 'completed' : statuses[Math.floor(Math.random() * statuses.length)];
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        
-        reports.push({
-            id: i + 1,
-            type: type,
-            scene: scene,
-            status: status,
-            created_at: date.toISOString(),
-            duration: Math.floor(Math.random() * 300) + 30,
-            images_count: type === 'fusion' ? Math.floor(Math.random() * 20) + 5 : null,
-            method: type === 'reconstruction' ? ['MSMG', 'MFTG', 'OMMG'][Math.floor(Math.random() * 3)] : null,
-            metrics: type === 'fusion' ? {
-                avg_ag: (Math.random() * 10 + 5).toFixed(2),
-                avg_sd: (Math.random() * 50 + 20).toFixed(2),
-                avg_vif: (Math.random() * 0.5 + 0.5).toFixed(3)
-            } : null
-        });
-    }
-    
-    return reports.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}
-
 // ========== 更新统计数据 ==========
-function updateReportStatistics(reports) {
-    const totalCount = reports.length;
-    const fusionCount = reports.filter(r => r.type === 'fusion').length;
-    const reconstructionCount = reports.filter(r => r.type === 'reconstruction').length;
-    const segmentationCount = reports.filter(r => r.type === 'segmentation').length;
-    
-    document.getElementById('reportsTotalCount').innerHTML = `${totalCount} <span style="font-size: 16px;">份</span>`;
-    document.getElementById('reportsFusionCount').innerHTML = `${fusionCount} <span style="font-size: 16px;">次</span>`;
-    document.getElementById('reportsReconstructionCount').innerHTML = `${reconstructionCount} <span style="font-size: 16px;">次</span>`;
-    document.getElementById('reportsSegmentationCount').innerHTML = `${segmentationCount} <span style="font-size: 16px;">次</span>`;
+async function updateReportStatistics() {
+    try {
+        const response = await fetch('/api/reports/statistics', {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const stats = result.data;
+            
+            document.getElementById('reportsTotalCount').innerHTML = `${stats.total} <span style="font-size: 16px;">份</span>`;
+            document.getElementById('reportsFusionCount').innerHTML = `${stats.fusion} <span style="font-size: 16px;">次</span>`;
+            document.getElementById('reportsReconstructionCount').innerHTML = `${stats.reconstruction} <span style="font-size: 16px;">次</span>`;
+            document.getElementById('reportsSegmentationCount').innerHTML = `${stats.segmentation} <span style="font-size: 16px;">次</span>`;
+        }
+    } catch (error) {
+        console.error('更新统计数据失败:', error);
+    }
 }
 
 // ========== 显示报告列表 ==========
-function displayReportsList(reports) {
+function displayReportsList(reports, totalCount) {
     const listView = document.getElementById('reportsListView');
     
     if (reports.length === 0) {
@@ -275,36 +273,29 @@ function displayReportsList(reports) {
                 <p style="font-size: 16px;">暂无报告数据</p>
             </div>
         `;
+        document.getElementById('reportsPagination').innerHTML = '';
         return;
     }
 
-    // 应用筛选
-    const filteredReports = filterReportsByType(reports);
+    const typeLabels = {
+        fusion: '图像融合',
+        reconstruction: '三维重建',
+        segmentation: '场景分割'
+    };
     
-    // 分页
-    const startIndex = (currentReportPage - 1) * reportPageSize;
-    const endIndex = startIndex + reportPageSize;
-    const paginatedReports = filteredReports.slice(startIndex, endIndex);
+    const statusLabels = {
+        completed: '已完成',
+        processing: '处理中',
+        failed: '失败'
+    };
     
-    listView.innerHTML = paginatedReports.map(report => {
-        const typeLabels = {
-            fusion: '图像融合',
-            reconstruction: '三维重建',
-            segmentation: '场景分割'
-        };
-        
-        const statusLabels = {
-            completed: '已完成',
-            processing: '处理中',
-            failed: '失败'
-        };
-        
-        const statusColors = {
-            completed: '#52c41a',
-            processing: '#1890ff',
-            failed: '#ff4757'
-        };
-        
+    const statusColors = {
+        completed: '#52c41a',
+        processing: '#1890ff',
+        failed: '#ff4757'
+    };
+    
+    listView.innerHTML = reports.map(report => {
         return `
             <div class="report-card" onclick="showReportDetail(${report.id})">
                 <div class="report-header">
@@ -349,26 +340,9 @@ function displayReportsList(reports) {
     }).join('');
     
     // 更新分页
-    displayReportsPagination(filteredReports.length);
+    displayReportsPagination(totalCount);
 }
 
-
-// ========== 筛选报告 ==========
-function filterReportsByType(reports) {
-    const typeFilter = document.getElementById('reportTypeFilter')?.value || 'all';
-    const sceneFilter = document.getElementById('reportSceneFilter')?.value || '';
-    const dateFilter = document.getElementById('reportDateFilter')?.value || '';
-    
-    return reports.filter(report => {
-        if (typeFilter !== 'all' && report.type !== typeFilter) return false;
-        if (sceneFilter && report.scene !== sceneFilter) return false;
-        if (dateFilter) {
-            const reportDate = new Date(report.created_at).toISOString().split('T')[0];
-            if (reportDate !== dateFilter) return false;
-        }
-        return true;
-    });
-}
 
 // ========== 显示分页 ==========
 function displayReportsPagination(totalCount) {
@@ -411,125 +385,157 @@ function formatDuration(seconds) {
 }
 
 // ========== 显示报告详情 ==========
-function showReportDetail(reportId) {
-    const reports = generateMockReports();
-    const report = reports.find(r => r.id === reportId);
-    
-    if (!report) return;
-    
-    const typeLabels = {
-        fusion: '图像融合',
-        reconstruction: '三维重建',
-        segmentation: '场景分割'
-    };
-    
-    const statusLabels = {
-        completed: '已完成',
-        processing: '处理中',
-        failed: '失败'
-    };
-    
-    document.getElementById('reportDetailTitle').textContent = `${typeLabels[report.type]}报告 - #${report.id.toString().padStart(4, '0')}`;
-    document.getElementById('reportDetailModal').style.display = 'flex';
-    
-    let detailContent = `
-        <div style="margin-bottom: 24px;">
-            <h4 style="margin-bottom: 12px; color: #333;">📊 基本信息</h4>
-            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">报告ID</p>
-                        <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">#${report.id.toString().padStart(4, '0')}</p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">处理类型</p>
-                        <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${typeLabels[report.type]}</p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">场景名称</p>
-                        <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${report.scene}</p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">状态</p>
-                        <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${statusLabels[report.status]}</p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">创建时间</p>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">${new Date(report.created_at).toLocaleString('zh-CN')}</p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 12px; color: #999;">处理时长</p>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">${formatDuration(report.duration)}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // 根据类型添加特定信息
-    if (report.type === 'fusion' && report.metrics) {
-        detailContent += `
-            <div style="margin-bottom: 24px;">
-                <h4 style="margin-bottom: 12px; color: #333;">📈 融合质量指标</h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-                    <div style="background: #e6f7ff; padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 600; color: #1890ff;">${report.metrics.avg_ag}</div>
-                        <div style="font-size: 13px; color: #666; margin-top: 4px;">平均梯度 (AG)</div>
-                    </div>
-                    <div style="background: #f6ffed; padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 600; color: #52c41a;">${report.metrics.avg_sd}</div>
-                        <div style="font-size: 13px; color: #666; margin-top: 4px;">标准差 (SD)</div>
-                    </div>
-                    <div style="background: #fff7e6; padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 600; color: #fa8c16;">${report.metrics.avg_vif}</div>
-                        <div style="font-size: 13px; color: #666; margin-top: 4px;">视觉信息保真度 (VIF)</div>
-                    </div>
-                </div>
-                <p style="margin-top: 12px; font-size: 13px; color: #666;">
-                    处理了 ${report.images_count} 张图像对，平均每对处理时间约 ${(report.duration / report.images_count).toFixed(1)} 秒
-                </p>
-            </div>
-        `;
-    }
-    
-    if (report.type === 'reconstruction' && report.method) {
-        const methodDescriptions = {
-            'MSMG': '多模态单高斯 - 使用单一高斯模型处理多模态数据',
-            'MFTG': '多模态微调 - 在预训练模型基础上进行微调',
-            'OMMG': '一体化多模态 - 端到端的多模态融合重建'
+async function showReportDetail(reportId) {
+    try {
+        // 从后端获取报告详情
+        const response = await fetch(`/api/reports/${reportId}`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取报告详情失败');
+        }
+        
+        const result = await response.json();
+        const report = result.data;
+        
+        const typeLabels = {
+            fusion: '图像融合',
+            reconstruction: '三维重建',
+            segmentation: '场景分割'
         };
         
-        detailContent += `
+        const statusLabels = {
+            completed: '已完成',
+            processing: '处理中',
+            failed: '失败'
+        };
+        
+        document.getElementById('reportDetailTitle').textContent = `${typeLabels[report.type]}报告 - #${report.id.toString().padStart(4, '0')}`;
+        document.getElementById('reportDetailModal').style.display = 'flex';
+        
+        let detailContent = `
             <div style="margin-bottom: 24px;">
-                <h4 style="margin-bottom: 12px; color: #333;">🧊 重建信息</h4>
+                <h4 style="margin-bottom: 12px; color: #333;">📊 基本信息</h4>
                 <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
-                    <p style="margin: 0 0 8px 0;"><strong>重建方法:</strong> ${report.method}</p>
-                    <p style="margin: 0; font-size: 13px; color: #666;">${methodDescriptions[report.method]}</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">报告ID</p>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">#${report.id.toString().padStart(4, '0')}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">处理类型</p>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${typeLabels[report.type]}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">场景名称</p>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${report.scene}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">状态</p>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600;">${statusLabels[report.status]}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">创建时间</p>
+                            <p style="margin: 4px 0 0 0; font-size: 14px;">${new Date(report.created_at).toLocaleString('zh-CN')}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">处理时长</p>
+                            <p style="margin: 4px 0 0 0; font-size: 14px;">${formatDuration(report.duration)}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 12px; color: #999;">操作员</p>
+                            <p style="margin: 4px 0 0 0; font-size: 14px;">${report.user || '未知'}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
-    }
-    
-    detailContent += `
-        <div style="margin-bottom: 24px;">
-            <h4 style="margin-bottom: 12px; color: #333;">📁 输出文件</h4>
-            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
-                <p style="margin: 0 0 12px 0; color: #666;">处理结果已保存到以下位置：</p>
-                <div style="font-family: monospace; font-size: 13px; background: white; padding: 12px; border-radius: 4px; border: 1px solid #e0e0e0;">
-                    /static/${report.scene}/${report.type}/
-                </div>
-            </div>
-        </div>
         
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn-secondary" style="padding: 10px 20px;" onclick="closeReportDetailModal()">关闭</button>
-            <button class="btn-process" style="width: auto; padding: 10px 20px;" onclick="downloadReport(${report.id})">
-                <span style="font-size: 16px; margin-right: 5px;">📥</span> 下载报告
-            </button>
-        </div>
-    `;
-    
-    document.getElementById('reportDetailContent').innerHTML = detailContent;
+        // 根据类型添加特定信息
+        if (report.type === 'fusion' && report.metrics) {
+            detailContent += `
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #333;">📈 融合质量指标</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                        ${report.metrics.avg_ag ? `
+                            <div style="background: #e6f7ff; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 600; color: #1890ff;">${report.metrics.avg_ag}</div>
+                                <div style="font-size: 13px; color: #666; margin-top: 4px;">平均梯度 (AG)</div>
+                            </div>
+                        ` : ''}
+                        ${report.metrics.avg_sd ? `
+                            <div style="background: #f6ffed; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 600; color: #52c41a;">${report.metrics.avg_sd}</div>
+                                <div style="font-size: 13px; color: #666; margin-top: 4px;">标准差 (SD)</div>
+                            </div>
+                        ` : ''}
+                        ${report.metrics.avg_vif ? `
+                            <div style="background: #fff7e6; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 600; color: #fa8c16;">${report.metrics.avg_vif}</div>
+                                <div style="font-size: 13px; color: #666; margin-top: 4px;">视觉信息保真度 (VIF)</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${report.images_count ? `
+                        <p style="margin-top: 12px; font-size: 13px; color: #666;">
+                            处理了 ${report.images_count} 张图像对，平均每对处理时间约 ${(report.duration / report.images_count).toFixed(1)} 秒
+                        </p>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        if (report.type === 'reconstruction' && report.method) {
+            const methodDescriptions = {
+                'MSMG': '多模态单高斯 - 使用单一高斯模型处理多模态数据',
+                'MFTG': '多模态微调 - 在预训练模型基础上进行微调',
+                'OMMG': '一体化多模态 - 端到端的多模态融合重建'
+            };
+            
+            detailContent += `
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #333;">🧊 重建信息</h4>
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
+                        <p style="margin: 0 0 8px 0;"><strong>重建方法:</strong> ${report.method}</p>
+                        <p style="margin: 0; font-size: 13px; color: #666;">${methodDescriptions[report.method] || '自定义重建方法'}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (report.output_path) {
+            detailContent += `
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #333;">📁 输出文件</h4>
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
+                        <p style="margin: 0 0 12px 0; color: #666;">处理结果已保存到以下位置：</p>
+                        <div style="font-family: monospace; font-size: 13px; background: white; padding: 12px; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            ${report.output_path}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        detailContent += `
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-secondary" style="padding: 10px 20px;" onclick="closeReportDetailModal()">关闭</button>
+                <button class="btn-process" style="width: auto; padding: 10px 20px;" onclick="downloadReport(${report.id}, 'json')">
+                    <span style="font-size: 16px; margin-right: 5px;">📄</span> 下载JSON
+                </button>
+                <button class="btn-process" style="width: auto; padding: 10px 20px; background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);" onclick="downloadReport(${report.id}, 'zip')">
+                    <span style="font-size: 16px; margin-right: 5px;">📦</span> 下载ZIP
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('reportDetailContent').innerHTML = detailContent;
+        
+    } catch (error) {
+        console.error('获取报告详情失败:', error);
+        alert('获取报告详情失败: ' + error.message);
+    }
 }
 
 // ========== 关闭报告详情 ==========
@@ -538,43 +544,94 @@ function closeReportDetailModal() {
 }
 
 // ========== 下载报告 ==========
-function downloadReport(reportId) {
-    alert(`报告 #${reportId.toString().padStart(4, '0')} 下载功能开发中...`);
+async function downloadReport(reportId, format = 'json') {
+    try {
+        const response = await fetch(`/api/reports/${reportId}/download?format=${format}`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('下载报告失败');
+        }
+        
+        // 获取文件名
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `report_${reportId}.${format}`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename=(.+)/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        // 下载文件
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        alert(`报告 #${reportId.toString().padStart(4, '0')} 下载成功！`);
+        
+    } catch (error) {
+        console.error('下载报告失败:', error);
+        alert('下载报告失败: ' + error.message);
+    }
 }
 
 // ========== 导出报告 ==========
-function exportReports() {
-    const reports = generateMockReports();
-    const filteredReports = filterReportsByType(reports);
-    
-    // 生成CSV内容
-    const headers = ['报告ID', '类型', '场景', '状态', '创建时间', '处理时长(秒)'];
-    const rows = filteredReports.map(report => [
-        report.id,
-        report.type,
-        report.scene,
-        report.status,
-        new Date(report.created_at).toLocaleString('zh-CN'),
-        report.duration
-    ]);
-    
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    // 下载CSV
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `reports_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-    
-    alert('报告导出成功！');
+async function exportReports() {
+    try {
+        const typeFilter = document.getElementById('reportTypeFilter')?.value || 'all';
+        const sceneFilter = document.getElementById('reportSceneFilter')?.value || '';
+        const dateFilter = document.getElementById('reportDateFilter')?.value || '';
+        
+        // 构建查询参数
+        const params = new URLSearchParams();
+        if (typeFilter !== 'all') params.append('type', typeFilter);
+        if (sceneFilter) params.append('scene', sceneFilter);
+        if (dateFilter) params.append('date', dateFilter);
+        
+        const response = await fetch(`/api/reports/export?${params.toString()}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('导出报告失败');
+        }
+        
+        // 获取文件名
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `reports_export_${new Date().toISOString().split('T')[0]}.csv`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename=(.+)/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        // 下载CSV文件
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        alert('报告导出成功！');
+        
+    } catch (error) {
+        console.error('导出报告失败:', error);
+        alert('导出报告失败: ' + error.message);
+    }
 }
 
 // ========== 刷新报告 ==========

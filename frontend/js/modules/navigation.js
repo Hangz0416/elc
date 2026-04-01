@@ -34,7 +34,7 @@ export function initNavigation() {
 }
 
 // 页面导航函数
-export function navigateToPage(page) {
+export function navigateToPage(page, params = {}) {
     // 更新导航状态
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
@@ -55,7 +55,7 @@ export function navigateToPage(page) {
             break;
         case 'fusion':
             document.getElementById('pageTitle').textContent = '图像融合';
-            loadFusionContent();
+            loadFusionContent(params);
             break;
         case 'reconstruction':
             document.getElementById('pageTitle').textContent = '三维重建';

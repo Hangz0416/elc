@@ -10,7 +10,7 @@ from backend.logic.fusion_logic import setup_fusion_model
 from backend.core.database import init_db, init_roles_and_admin
 
 # 导入路由模块
-from backend.routers import auth, pages, fusion, reconstruction, segmentation, scenes, users, roles, logs
+from backend.routers import auth, pages, fusion, reconstruction, segmentation, scenes, users, roles, logs, reports, demo
 
 # 创建一个 FastAPI "实例"
 app = FastAPI(
@@ -65,6 +65,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # 例如: frontend/css/main.css -> http://localhost:8000/frontend/css/main.css
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
+# 挂载 "data" 目录，提供演示数据访问
+# 例如: data/RGBT-Scenes/... -> http://localhost:8000/data/RGBT-Scenes/...
+if os.path.exists("data"):
+    app.mount("/data", StaticFiles(directory="data"), name="data")
+
 
 # --- 注册路由 ---
 # 页面路由（HTML页面）
@@ -83,6 +88,8 @@ app.include_router(fusion.router)
 app.include_router(reconstruction.router)
 app.include_router(segmentation.router)
 app.include_router(scenes.router)
+app.include_router(reports.router)
+app.include_router(demo.router)
 
 
 # --- 启动服务 ---

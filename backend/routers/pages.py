@@ -50,3 +50,12 @@ async def read_admin():
     当用户访问 "http://localhost:8000/admin.html" 时，返回 admin.html 文件。
     """
     return FileResponse('templates/admin.html')
+
+
+@router.get("/forgot-password.html")
+async def read_forgot_password():
+    """
+    忘记密码页面路由。
+    当用户访问 "http://localhost:8000/forgot-password.html" 时，返回 forgot-password.html 文件。
+    """
+    return FileResponse('templates/forgot-password.html')

@@ -73,15 +73,15 @@ async function loadScenesForSegmentation() {
         if (!response.ok) throw new Error('无法获取场景列表');
         
         const data = await response.json();
-        const scenes = Array.isArray(data) ? data : data.unique_scenes || [];
+        const scenes = data.scenes || [];
         
         const select = document.getElementById('segmentationSceneSelect');
         select.innerHTML = '<option value="">--请选择一个场景进行分割--</option>';
         
         scenes.forEach(scene => {
             const option = document.createElement('option');
-            option.value = scene;
-            option.textContent = scene;
+            option.value = scene.name;
+            option.textContent = scene.name;
             select.appendChild(option);
         });
         
