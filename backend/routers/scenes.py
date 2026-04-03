@@ -1,9 +1,11 @@
 """
 场景管理相关路由
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
+from typing import List
 import os
+import shutil
 
 router = APIRouter(prefix="/api", tags=["场景管理"])
 
@@ -88,6 +90,86 @@ async def get_reconstruction_scenes():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"无法读取场景目录: {e}")
+
+
+@router.post("/scenes", summary="创建新场景")
+async def create_scene(scene_data: dict):
+    """
+    创建一个新的场景项目。
+    
+    参数:
+    - name: 场景名称（必填）
+    - description: 场景描述（可选）
+    - type: 场景类型（可选）
+    
+    返回:
+    - success: 是否成功
+    - message: 提示信息
+    - scene_name: 场景名称
+    - scene_path: 场景路径
+    """
+    name = scene_data.get("name", "").strip()
+    description = scene_data.get("description", "")
+    scene_type = scene_data.get("type", "other")
+    
+    # 验证场景名称
+    if not name:
+        raise HTTPException(status_code=400, detail="场景名称不能为空")
+    
+    # 验证场景名称格式（只允许字母、数字、下划线和连字符）
+    import re
+    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+        raise HTTPException(status_code=400, detail="场景名称只能包含字母、数字、下划线和连字符")
+    
+    # 创建场景目录
+    uploads_root = "static/uploads"
+    os.makedirs(uploads_root, exist_ok=True)
+    
+    scene_path = os.path.join(uploads_root, name)
+    
+    # 检查场景是否已存在
+    if os.path.exists(scene_path):
+        raise HTTPException(status_code=400, detail=f"场景 '{name}' 已存在")
+    
+    try:
+        # 创建场景目录结构
+        os.makedirs(os.path.join(scene_path, "rgb"), exist_ok=True)
+        os.makedirs(os.path.join(scene_path, "thermal"), exist_ok=True)
+        os.makedirs(os.path.join(scene_path, "fused"), exist_ok=True)
+        os.makedirs(os.path.join(scene_path, "reconstruction"), exist_ok=True)
+        os.makedirs(os.path.join(scene_path, "segmentation"), exist_ok=True)
+        
+        # 创建元数据文件
+        import json
+        import time
+        metadata = {
+            "name": name,
+            "description": description,
+            "type": scene_type,
+            "created_at": time.strftime('%Y-%m-%d %H:%M:%S'),
+            "updated_at": time.strftime('%Y-%m-%d %H:%M:%S'),
+            "rgb_count": 0,
+            "thermal_count": 0,
+            "fused_count": 0,
+            "has_colmap": False
+        }
+        
+        metadata_path = os.path.join(scene_path, "metadata.json")
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, ensure_ascii=False, indent=2)
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": f"场景 '{name}' 创建成功",
+            "scene_name": name,
+            "scene_path": scene_path
+        })
+        
+    except Exception as e:
+        # 如果创建失败，清理已创建的目录
+        if os.path.exists(scene_path):
+            shutil.rmtree(scene_path)
+        raise HTTPException(status_code=500, detail=f"创建场景失败: {e}")
 
 
 @router.get("/reconstructed-scenes", summary="获取已完成重建的场景列表")
@@ -360,3 +442,94 @@ async def get_scene_images(scene_name: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取图像列表失败: {e}")
+
+
+@router.post("/scenes/{scene_name}/upload", summary="批量上传场景图像")
+async def upload_scene_images(
+    scene_name: str,
+    image_type: str = Form(...),
+    images: List[UploadFile] = File(...)
+):
+    """
+    批量上传RGB或热红外图像到指定场景。
+    
+    参数:
+    - scene_name: 场景名称
+    - image_type: 图像类型 ("rgb" 或 "thermal")
+    - images: 图像文件列表
+    
+    返回:
+    - success: 是否成功
+    - uploaded_count: 成功上传的文件数
+    - failed_count: 失败的文件数
+    - files: 每个文件的上传状态
+    """
+    # 验证图像类型
+    if image_type not in ["rgb", "thermal"]:
+        raise HTTPException(status_code=400, detail="图像类型必须是 'rgb' 或 'thermal'")
+    
+    # 验证场景是否存在
+    uploads_root = "static/uploads"
+    scene_path = os.path.join(uploads_root, scene_name)
+    
+    if not os.path.isdir(scene_path):
+        raise HTTPException(status_code=404, detail=f"场景不存在: {scene_name}")
+    
+    # 创建图像类型目录
+    target_dir = os.path.join(scene_path, image_type)
+    os.makedirs(target_dir, exist_ok=True)
+    
+    # 支持的文件格式
+    allowed_extensions = {'.jpg', '.jpeg', '.png'}
+    
+    uploaded_files = []
+    uploaded_count = 0
+    failed_count = 0
+    
+    try:
+        for image in images:
+            file_info = {
+                "filename": image.filename,
+                "size": 0,
+                "status": "success",
+                "message": ""
+            }
+            
+            try:
+                # 验证文件扩展名
+                file_ext = os.path.splitext(image.filename)[1].lower()
+                if file_ext not in allowed_extensions:
+                    file_info["status"] = "failed"
+                    file_info["message"] = f"不支持的文件格式: {file_ext}"
+                    failed_count += 1
+                    uploaded_files.append(file_info)
+                    continue
+                
+                # 保存文件
+                file_path = os.path.join(target_dir, image.filename)
+                
+                with open(file_path, "wb") as buffer:
+                    content = await image.read()
+                    buffer.write(content)
+                    file_info["size"] = len(content)
+                
+                uploaded_count += 1
+                uploaded_files.append(file_info)
+                
+            except Exception as e:
+                file_info["status"] = "failed"
+                file_info["message"] = str(e)
+                failed_count += 1
+                uploaded_files.append(file_info)
+        
+        return JSONResponse(content={
+            "success": True,
+            "uploaded_count": uploaded_count,
+            "failed_count": failed_count,
+            "scene_name": scene_name,
+            "image_type": image_type,
+            "files": uploaded_files
+        })
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"上传失败: {e}")

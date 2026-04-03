@@ -4,6 +4,7 @@
  */
 
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 /**
  * Load and display the segmentation page content
@@ -13,7 +14,7 @@ export function loadSegmentationContent() {
     mainContent.innerHTML = `
         <div class="content-card">
             <div class="card-title">
-                <span>🎯</span>
+                <span>${getIcon('target', 20)}</span>
                 <span>场景分割</span>
             </div>
 
@@ -31,11 +32,11 @@ export function loadSegmentationContent() {
 
             <!-- 分割结果 -->
             <div class="result-panel" id="segmentationResults">
-                <div class="result-title">🎯 场景分割结果</div>
+                <div class="result-title">${getIcon('target', 20)} 场景分割结果</div>
                 <p id="segmentationStatus" style="text-align: center; margin-bottom: 15px; color: #666;">等待执行分割操作...</p>
                 
                 <div class="result-item">
-                    <h4>🎨 真实分割图与原图对比 (Ground Truth & Original)</h4>
+                    <h4>${getIcon('image', 20)} 真实分割图与原图对比 (Ground Truth & Original)</h4>
                     <div id="renderedImagesSegmentation" class="rendered-images-gallery-paired">等待渲染结果...</div>
                 </div>
             </div>

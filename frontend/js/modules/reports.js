@@ -1,5 +1,6 @@
 // 报告中心模块
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 let currentReportPage = 1;
 const reportPageSize = 15;
@@ -11,22 +12,22 @@ export function loadReportsContent() {
         <!-- 统计卡片 -->
         <div class="kpi-grid" style="margin-bottom: 24px;">
             <div class="kpi-card">
-                <div class="kpi-label">📊 总报告数</div>
+                <div class="kpi-label">${getIcon('chart', 20)} 总报告数</div>
                 <div class="kpi-value blue" id="reportsTotalCount">0 <span style="font-size: 16px;">份</span></div>
                 <div class="kpi-trend">历史累计报告</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">🔀 图像融合</div>
+                <div class="kpi-label">${getIcon('fusion', 20)} 图像融合</div>
                 <div class="kpi-value green" id="reportsFusionCount">0 <span style="font-size: 16px;">次</span></div>
                 <div class="kpi-trend">融合处理记录</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">🧊 三维重建</div>
+                <div class="kpi-label">${getIcon('cube', 20)} 三维重建</div>
                 <div class="kpi-value orange" id="reportsReconstructionCount">0 <span style="font-size: 16px;">次</span></div>
                 <div class="kpi-trend">重建任务记录</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">🎯 场景分割</div>
+                <div class="kpi-label">${getIcon('target', 20)} 场景分割</div>
                 <div class="kpi-value" style="color: #722ed1;" id="reportsSegmentationCount">0 <span style="font-size: 16px;">次</span></div>
                 <div class="kpi-trend">分割任务记录</div>
             </div>
@@ -49,10 +50,10 @@ export function loadReportsContent() {
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-process" style="width: auto; padding: 10px 20px;" onclick="exportReports()">
-                        <span style="font-size: 16px; margin-right: 5px;">📥</span> 导出报告
+                        <span style="margin-right: 5px;">${getIcon('download', 16)}</span> 导出报告
                     </button>
                     <button class="btn-secondary" style="padding: 10px 20px;" onclick="refreshReports()">
-                        <span style="font-size: 16px; margin-right: 5px;">🔄</span> 刷新
+                        <span style="margin-right: 5px;">${getIcon('refresh', 16)}</span> 刷新
                     </button>
                 </div>
             </div>
@@ -234,7 +235,7 @@ async function loadReportsData() {
         console.error('加载报告数据失败:', error);
         document.getElementById('reportsListView').innerHTML = `
             <div style="text-align: center; padding: 60px; color: #999;">
-                <p style="font-size: 48px; margin-bottom: 16px;">😕</p>
+                <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('search', 48, '#ccc')}</div>
                 <p>加载报告失败: ${error.message}</p>
             </div>
         `;
@@ -269,7 +270,7 @@ function displayReportsList(reports, totalCount) {
     if (reports.length === 0) {
         listView.innerHTML = `
             <div style="text-align: center; padding: 60px; color: #999;">
-                <p style="font-size: 48px; margin-bottom: 16px;">📭</p>
+                <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('box', 48, '#ccc')}</div>
                 <p style="font-size: 16px;">暂无报告数据</p>
             </div>
         `;
@@ -416,7 +417,7 @@ async function showReportDetail(reportId) {
         
         let detailContent = `
             <div style="margin-bottom: 24px;">
-                <h4 style="margin-bottom: 12px; color: #333;">📊 基本信息</h4>
+                <h4 style="margin-bottom: 12px; color: #333;">${getIcon('chart', 20)} 基本信息</h4>
                 <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <div>
@@ -456,7 +457,7 @@ async function showReportDetail(reportId) {
         if (report.type === 'fusion' && report.metrics) {
             detailContent += `
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #333;">📈 融合质量指标</h4>
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('chart', 20)} 融合质量指标</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                         ${report.metrics.avg_ag ? `
                             <div style="background: #e6f7ff; padding: 16px; border-radius: 8px; text-align: center;">
@@ -495,7 +496,7 @@ async function showReportDetail(reportId) {
             
             detailContent += `
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #333;">🧊 重建信息</h4>
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('cube', 20)} 重建信息</h4>
                     <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
                         <p style="margin: 0 0 8px 0;"><strong>重建方法:</strong> ${report.method}</p>
                         <p style="margin: 0; font-size: 13px; color: #666;">${methodDescriptions[report.method] || '自定义重建方法'}</p>
@@ -522,10 +523,10 @@ async function showReportDetail(reportId) {
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="btn-secondary" style="padding: 10px 20px;" onclick="closeReportDetailModal()">关闭</button>
                 <button class="btn-process" style="width: auto; padding: 10px 20px;" onclick="downloadReport(${report.id}, 'json')">
-                    <span style="font-size: 16px; margin-right: 5px;">📄</span> 下载JSON
+                    <span style="margin-right: 5px;">${getIcon('file', 16)}</span> 下载JSON
                 </button>
                 <button class="btn-process" style="width: auto; padding: 10px 20px; background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);" onclick="downloadReport(${report.id}, 'zip')">
-                    <span style="font-size: 16px; margin-right: 5px;">📦</span> 下载ZIP
+                    <span style="margin-right: 5px;">${getIcon('box', 16)}</span> 下载ZIP
                 </button>
             </div>
         `;

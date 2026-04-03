@@ -4,6 +4,7 @@
  */
 
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 /**
  * Load and display the fusion page content
@@ -14,44 +15,43 @@ export async function loadFusionContent(params = {}) {
     mainContent.innerHTML = `
         <div class="content-card">
             <div class="card-title">
-                <span>🔀</span>
+                <span>${getIcon('fusion', 20)}</span>
                 <span>图像融合</span>
             </div>
             
             ${params.scene ? `
             <div style="background: #e6f7ff; border-left: 4px solid #1890ff; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
                 <p style="margin: 0; color: #0050b3; font-size: 14px;">
-                    📦 正在处理场景: <strong>${params.scene}</strong>
+                    ${getIcon('box', 16)} 正在处理场景: <strong>${params.scene}</strong>
                 </p>
             </div>
             ` : ''}
             
-            <!-- 图像上传区 -->
-            <div class="upload-section">
-                <div class="upload-box" id="fusionRgbBox">
-                    <div class="upload-icon">📷</div>
-                    <div class="upload-text">上传RGB图像</div>
-                    <div class="upload-hint">支持多选, JPG, PNG 格式</div>
-                    <input type="file" id="fusionRgbInput" class="file-input" accept="image/*" multiple>
-                    <div id="fusionRgbPreview" class="image-preview"></div>
-                </div>
-                
-                <div class="upload-box" id="fusionThermalBox">
-                    <div class="upload-icon">🌡️</div>
-                    <div class="upload-text">上传热成像图像</div>
-                    <div class="upload-hint">支持多选, JPG, PNG 格式</div>
-                    <input type="file" id="fusionThermalInput" class="file-input" accept="image/*" multiple>
-                    <div id="fusionThermalPreview" class="image-preview"></div>
-                </div>
-            </div>
-
             <!-- 场景选择 -->
-            <div class="process-section">
-                <h3>场景选择</h3>
-                <select id="fusionSceneSelect">
-                    <option value="">--请选择一个场景以存放融合数据--</option>
+            <div class="process-section" style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 12px; color: #333;">选择场景</h3>
+                <select id="fusionSceneSelect" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 16px;">
+                    <option value="">--请选择一个场景进行融合--</option>
                 </select>
-                <button class="btn-process" id="fusionBtn" disabled>开始图像融合</button>
+                <div id="sceneImagePreview" style="display: none;">
+                    <h4 style="margin: 16px 0 12px 0; color: #333;">场景图像预览</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 8px; color: #666;">${getIcon('camera', 16)} RGB图像 (<span id="rgbImageCount">0</span>张)</div>
+                            <div id="fusionRgbPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 4px; min-height: 120px;"></div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 8px; color: #666;">${getIcon('thermal', 16)} 热红外图像 (<span id="thermalImageCount">0</span>张)</div>
+                            <div id="fusionThermalPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 4px; min-height: 120px;"></div>
+                        </div>
+                    </div>
+                    <div id="imageCountWarning" style="display: none; background: #fff7e6; border-left: 4px solid #fa8c16; padding: 12px 16px; margin-bottom: 16px; border-radius: 4px;">
+                        <p style="margin: 0; color: #ad6800; font-size: 14px;">
+                            ${getIcon('warning', 16, '#fa8c16')} <span id="warningMessage">图像数量不匹配</span>
+                        </p>
+                    </div>
+                </div>
+                <button class="btn-process" id="fusionBtn" disabled style="margin-top: 0;">开始图像融合</button>
                 <div class="progress-bar" id="fusionProgressBar">
                     <div class="progress-fill" id="fusionProgressFill"></div>
                 </div>
@@ -59,7 +59,7 @@ export async function loadFusionContent(params = {}) {
 
             <!-- 融合结果 -->
             <div class="result-panel" id="fusionResults">
-                <div class="result-title">🔀 图像融合结果</div>
+                <div class="result-title">${getIcon('fusion', 20)} 图像融合结果</div>
                 <div class="result-grid" id="fusionResultGrid"></div>
             </div>
         </div>
@@ -73,43 +73,33 @@ export async function loadFusionContent(params = {}) {
  * @param {Object} params - Optional parameters, e.g., { scene: 'sceneName' }
  */
 async function initFusionModule(params = {}) {
-    const rgbInput = document.getElementById('fusionRgbInput');
-    const thermalInput = document.getElementById('fusionThermalInput');
-    const rgbBox = document.getElementById('fusionRgbBox');
-    const thermalBox = document.getElementById('fusionThermalBox');
     const fusionBtn = document.getElementById('fusionBtn');
     const sceneSelect = document.getElementById('fusionSceneSelect');
 
-    // 先加载场景列表
+    // 加载场景列表
     await loadScenesForFusion();
 
-    // Click upload boxes
-    rgbBox.addEventListener('click', (e) => {
-        if (e.target !== rgbInput) rgbInput.click();
+    // 场景选择变化时加载图像预览
+    sceneSelect.addEventListener('change', async (e) => {
+        const sceneName = e.target.value;
+        if (sceneName) {
+            await loadSceneImagesPreview(sceneName);
+        } else {
+            // 隐藏预览区域
+            const previewSection = document.getElementById('sceneImagePreview');
+            if (previewSection) previewSection.style.display = 'none';
+            checkFusionReady();
+        }
     });
-    thermalBox.addEventListener('click', (e) => {
-        if (e.target !== thermalInput) thermalInput.click();
-    });
 
-    // File selection
-    rgbInput.addEventListener('change', () => handleFusionFileSelection(rgbInput, 'fusionRgbPreview'));
-    thermalInput.addEventListener('change', () => handleFusionFileSelection(thermalInput, 'fusionThermalPreview'));
-
-    // Drag and drop
-    setupDragDrop(rgbBox, rgbInput, 'fusionRgbPreview');
-    setupDragDrop(thermalBox, thermalInput, 'fusionThermalPreview');
-
-    // Scene selection change
-    sceneSelect.addEventListener('change', checkFusionReady);
-
-    // Start fusion
+    // 开始融合按钮
     fusionBtn.addEventListener('click', startFusion);
     
-    // 如果传入了场景参数，自动加载该场景的图像
+    // 如果传入了场景参数，自动选择并加载该场景
     if (params.scene) {
-        // 延迟一下确保DOM完全准备好
         setTimeout(() => {
-            loadSceneImages(params.scene);
+            sceneSelect.value = params.scene;
+            loadSceneImagesPreview(params.scene);
         }, 100);
     }
 }
@@ -129,240 +119,174 @@ async function loadScenesForFusion() {
         const scenes = data.scenes || [];
         
         const select = document.getElementById('fusionSceneSelect');
-        select.innerHTML = '<option value="">--请选择一个场景以存放融合数据--</option>';
+        
+        if (scenes.length === 0) {
+            select.innerHTML = '<option value="">暂无场景，请先在场景资产页面创建场景</option>';
+            select.disabled = true;
+            return;
+        }
+        
+        select.innerHTML = '<option value="">--请选择一个场景进行融合--</option>';
+        select.disabled = false;
         
         scenes.forEach(scene => {
             const option = document.createElement('option');
             option.value = scene.name;
-            option.textContent = scene.name;
+            option.textContent = `${scene.name} (RGB: ${scene.rgb_count}, 热红外: ${scene.thermal_count})`;
             select.appendChild(option);
         });
     } catch (error) {
         console.error('加载场景失败:', error);
+        const select = document.getElementById('fusionSceneSelect');
+        select.innerHTML = '<option value="">加载场景失败，请刷新重试</option>';
+        select.disabled = true;
     }
 }
 
 /**
- * Load images from a specific scene
+ * Load and preview images from a specific scene
  * @param {string} sceneName - The name of the scene to load images from
  */
-async function loadSceneImages(sceneName) {
-    console.log('开始加载场景图像:', sceneName);
+async function loadSceneImagesPreview(sceneName) {
+    console.log('加载场景图像预览:', sceneName);
+    
+    const previewSection = document.getElementById('sceneImagePreview');
+    const rgbPreview = document.getElementById('fusionRgbPreview');
+    const thermalPreview = document.getElementById('fusionThermalPreview');
+    const rgbCountEl = document.getElementById('rgbImageCount');
+    const thermalCountEl = document.getElementById('thermalImageCount');
+    const warningDiv = document.getElementById('imageCountWarning');
+    const warningMsg = document.getElementById('warningMessage');
+    
+    if (!previewSection || !rgbPreview || !thermalPreview) {
+        console.error('预览容器未找到');
+        return;
+    }
+    
+    // 显示预览区域
+    previewSection.style.display = 'block';
+    
+    // 显示加载状态
+    rgbPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">加载中...</div>';
+    thermalPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">加载中...</div>';
     
     try {
         const token = getToken();
         
-        // 显示加载提示
-        const rgbPreview = document.getElementById('fusionRgbPreview');
-        const thermalPreview = document.getElementById('fusionThermalPreview');
-        
-        if (!rgbPreview || !thermalPreview) {
-            console.error('预览容器未找到');
-            return;
-        }
-        
-        rgbPreview.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">加载场景图像中...</p>';
-        thermalPreview.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">加载场景图像中...</p>';
-        
         // 获取场景图像列表
-        console.log('请求场景图像列表...');
         const response = await fetch(`/api/scenes/${sceneName}/images`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API响应错误:', response.status, errorText);
             throw new Error('无法获取场景图像');
         }
         
         const data = await response.json();
-        console.log('获取到的图像数据:', data);
-        
         const rgbImages = data.rgb_images || [];
         const thermalImages = data.thermal_images || [];
         
-        console.log(`RGB图像数量: ${rgbImages.length}, 热红外图像数量: ${thermalImages.length}`);
+        console.log(`RGB图像: ${rgbImages.length}, 热红外图像: ${thermalImages.length}`);
         
+        // 更新图像数量
+        if (rgbCountEl) rgbCountEl.textContent = rgbImages.length;
+        if (thermalCountEl) thermalCountEl.textContent = thermalImages.length;
+        
+        // 检查图像数量是否匹配
         if (rgbImages.length === 0 || thermalImages.length === 0) {
-            alert('该场景没有可用的图像数据');
-            rgbPreview.innerHTML = '';
-            thermalPreview.innerHTML = '';
+            warningDiv.style.display = 'block';
+            warningMsg.textContent = '该场景缺少图像数据，请先在场景资产页面上传图像';
+            rgbPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暂无图像</div>';
+            thermalPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暂无图像</div>';
+            checkFusionReady();
             return;
         }
         
-        console.log('开始下载并转换图像...');
-        
-        // 限制数量避免过多
-        const maxImages = Math.min(rgbImages.length, thermalImages.length, 10);
-        
-        // 下载并转换图像为File对象
-        const rgbFiles = [];
-        const thermalFiles = [];
-        
-        for (let i = 0; i < maxImages; i++) {
-            console.log(`下载第 ${i + 1}/${maxImages} 对图像...`);
-            
-            try {
-                // 下载RGB图像
-                const rgbResponse = await fetch(rgbImages[i].path);
-                if (!rgbResponse.ok) throw new Error(`RGB图像下载失败: ${rgbImages[i].path}`);
-                const rgbBlob = await rgbResponse.blob();
-                const rgbFile = new File([rgbBlob], rgbImages[i].filename, { type: rgbBlob.type || 'image/jpeg' });
-                rgbFiles.push(rgbFile);
-                console.log(`RGB图像已添加: ${rgbImages[i].filename}, 大小: ${rgbBlob.size}`);
-                
-                // 下载热红外图像
-                const thermalResponse = await fetch(thermalImages[i].path);
-                if (!thermalResponse.ok) throw new Error(`热红外图像下载失败: ${thermalImages[i].path}`);
-                const thermalBlob = await thermalResponse.blob();
-                const thermalFile = new File([thermalBlob], thermalImages[i].filename, { type: thermalBlob.type || 'image/jpeg' });
-                thermalFiles.push(thermalFile);
-                console.log(`热红外图像已添加: ${thermalImages[i].filename}, 大小: ${thermalBlob.size}`);
-            } catch (err) {
-                console.error(`下载第 ${i + 1} 对图像失败:`, err);
-            }
+        if (rgbImages.length !== thermalImages.length) {
+            warningDiv.style.display = 'block';
+            warningMsg.textContent = `图像数量不匹配：RGB ${rgbImages.length}张，热红外 ${thermalImages.length}张。融合需要相同数量的图像对。`;
+        } else {
+            warningDiv.style.display = 'none';
         }
         
-        console.log(`总共下载了 ${rgbFiles.length} 对图像`);
-        
-        if (rgbFiles.length === 0) {
-            throw new Error('没有成功下载任何图像');
-        }
-        
-        // 使用DataTransfer设置文件
-        const rgbInput = document.getElementById('fusionRgbInput');
-        const thermalInput = document.getElementById('fusionThermalInput');
-        
-        if (!rgbInput || !thermalInput) {
-            console.error('输入元素未找到');
-            return;
-        }
-        
-        // 创建DataTransfer并添加文件
-        const rgbDataTransfer = new DataTransfer();
-        const thermalDataTransfer = new DataTransfer();
-        
-        rgbFiles.forEach(file => rgbDataTransfer.items.add(file));
-        thermalFiles.forEach(file => thermalDataTransfer.items.add(file));
-        
-        // 设置files属性
-        rgbInput.files = rgbDataTransfer.files;
-        thermalInput.files = thermalDataTransfer.files;
-        
-        console.log('文件已设置到input元素');
-        console.log('RGB input files:', rgbInput.files.length);
-        console.log('Thermal input files:', thermalInput.files.length);
-        
-        // 手动显示预览
+        // 显示RGB图像缩略图（前6张）
         rgbPreview.innerHTML = '';
-        thermalPreview.innerHTML = '';
-        
-        // RGB预览
-        const rgbFileCount = document.createElement('p');
-        rgbFileCount.textContent = `已选择 ${rgbFiles.length} 张图片`;
-        rgbFileCount.style.cssText = 'text-align: left; padding: 0 5px; font-size: 0.9em; color: #666; grid-column: 1 / -1;';
-        rgbPreview.appendChild(rgbFileCount);
-        
-        rgbFiles.slice(0, 6).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.classList.add('preview-img');
-                rgbPreview.appendChild(img);
-            }
-            reader.readAsDataURL(file);
+        const rgbToShow = rgbImages.slice(0, 6);
+        rgbToShow.forEach(img => {
+            const imgEl = document.createElement('img');
+            imgEl.src = img.path;
+            imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 4px; cursor: pointer;';
+            imgEl.title = img.filename;
+            imgEl.onclick = () => window.open(img.path, '_blank');
+            rgbPreview.appendChild(imgEl);
         });
         
-        // 热红外预览
-        const thermalFileCount = document.createElement('p');
-        thermalFileCount.textContent = `已选择 ${thermalFiles.length} 张图片`;
-        thermalFileCount.style.cssText = 'text-align: left; padding: 0 5px; font-size: 0.9em; color: #666; grid-column: 1 / -1;';
-        thermalPreview.appendChild(thermalFileCount);
-        
-        thermalFiles.slice(0, 6).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.classList.add('preview-img');
-                thermalPreview.appendChild(img);
-            }
-            reader.readAsDataURL(file);
-        });
-        
-        console.log('预览已更新');
-        
-        // 自动选择场景
-        const sceneSelect = document.getElementById('fusionSceneSelect');
-        if (sceneSelect) {
-            sceneSelect.value = sceneName;
-            console.log('场景已选择:', sceneName);
+        if (rgbImages.length > 6) {
+            const moreDiv = document.createElement('div');
+            moreDiv.style.cssText = 'display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 4px; color: #666; font-size: 14px;';
+            moreDiv.textContent = `+${rgbImages.length - 6}`;
+            rgbPreview.appendChild(moreDiv);
         }
         
-        // 检查是否可以开始融合
+        // 显示热红外图像缩略图（前6张）
+        thermalPreview.innerHTML = '';
+        const thermalToShow = thermalImages.slice(0, 6);
+        thermalToShow.forEach(img => {
+            const imgEl = document.createElement('img');
+            imgEl.src = img.path;
+            imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 4px; cursor: pointer;';
+            imgEl.title = img.filename;
+            imgEl.onclick = () => window.open(img.path, '_blank');
+            thermalPreview.appendChild(imgEl);
+        });
+        
+        if (thermalImages.length > 6) {
+            const moreDiv = document.createElement('div');
+            moreDiv.style.cssText = 'display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 4px; color: #666; font-size: 14px;';
+            moreDiv.textContent = `+${thermalImages.length - 6}`;
+            thermalPreview.appendChild(moreDiv);
+        }
+        
+        // 检查融合准备状态
         checkFusionReady();
         
-        alert(`✅ 已加载场景图像！\n\n场景: ${sceneName}\n图像对数: ${rgbFiles.length}`);
-        
     } catch (error) {
-        console.error('加载场景图像失败:', error);
-        alert('加载场景图像失败: ' + error.message);
-        const rgbPreview = document.getElementById('fusionRgbPreview');
-        const thermalPreview = document.getElementById('fusionThermalPreview');
-        if (rgbPreview) rgbPreview.innerHTML = '<p style="text-align: center; padding: 20px; color: #f56565;">加载失败: ' + error.message + '</p>';
-        if (thermalPreview) thermalPreview.innerHTML = '<p style="text-align: center; padding: 20px; color: #f56565;">加载失败: ' + error.message + '</p>';
+        console.error('加载场景图像预览失败:', error);
+        rgbPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #f56565;">加载失败</div>';
+        thermalPreview.innerHTML = '<div style="text-align: center; padding: 20px; color: #f56565;">加载失败</div>';
     }
-}
-
-/**
- * Handle file selection and preview
- */
-function handleFusionFileSelection(input, previewId) {
-    const previewContainer = document.getElementById(previewId);
-    previewContainer.innerHTML = '';
-
-    if (input.files.length > 0) {
-        const fileCount = document.createElement('p');
-        fileCount.textContent = `已选择 ${input.files.length} 张图片`;
-        fileCount.style.cssText = 'text-align: left; padding: 0 5px; font-size: 0.9em; color: #666; grid-column: 1 / -1;';
-        previewContainer.appendChild(fileCount);
-
-        Array.from(input.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.classList.add('preview-img');
-                previewContainer.appendChild(img);
-            }
-            reader.readAsDataURL(file);
-        });
-    }
-    checkFusionReady();
 }
 
 /**
  * Check if fusion is ready to start
  */
 function checkFusionReady() {
-    const rgbFiles = document.getElementById('fusionRgbInput').files;
-    const thermalFiles = document.getElementById('fusionThermalInput').files;
     const sceneName = document.getElementById('fusionSceneSelect').value;
     const fusionBtn = document.getElementById('fusionBtn');
+    const rgbCountEl = document.getElementById('rgbImageCount');
+    const thermalCountEl = document.getElementById('thermalImageCount');
+    
+    if (!fusionBtn) return;
+    
+    const rgbCount = parseInt(rgbCountEl?.textContent || '0');
+    const thermalCount = parseInt(thermalCountEl?.textContent || '0');
 
-    if (rgbFiles.length > 0 && rgbFiles.length === thermalFiles.length && sceneName) {
-        fusionBtn.disabled = false;
-        fusionBtn.innerHTML = `开始融合 (${rgbFiles.length} 对)`;
-    } else {
+    if (!sceneName) {
         fusionBtn.disabled = true;
-        if (!sceneName) {
-            fusionBtn.innerHTML = '请先选择场景';
-        } else if (rgbFiles.length > 0 && thermalFiles.length > 0 && rgbFiles.length !== thermalFiles.length) {
-            fusionBtn.innerHTML = '图像数量不匹配';
+        fusionBtn.innerHTML = '请先选择场景';
+    } else if (rgbCount === 0 || thermalCount === 0) {
+        fusionBtn.disabled = true;
+        fusionBtn.innerHTML = '场景缺少图像数据';
+    } else if (rgbCount !== thermalCount) {
+        fusionBtn.disabled = true;
+        fusionBtn.innerHTML = `图像数量不匹配 (RGB: ${rgbCount}, 热红外: ${thermalCount})`;
+    } else {
+        fusionBtn.disabled = false;
+        const pairsToProcess = Math.min(rgbCount, 10);
+        if (rgbCount > 10) {
+            fusionBtn.innerHTML = `开始融合 (处理前 ${pairsToProcess} 对)`;
         } else {
-            fusionBtn.innerHTML = '开始图像融合';
+            fusionBtn.innerHTML = `开始融合 (${pairsToProcess} 对)`;
         }
     }
 }
@@ -374,6 +298,12 @@ async function startFusion() {
     const fusionBtn = document.getElementById('fusionBtn');
     const progressBar = document.getElementById('fusionProgressBar');
     const progressFill = document.getElementById('fusionProgressFill');
+    const sceneName = document.getElementById('fusionSceneSelect').value;
+    
+    if (!sceneName) {
+        alert('请先选择场景');
+        return;
+    }
     
     fusionBtn.innerHTML = '<span class="loading-spinner"></span>融合处理中...';
     fusionBtn.disabled = true;
@@ -388,20 +318,16 @@ async function startFusion() {
     }, 300);
 
     try {
-        const rgbFiles = document.getElementById('fusionRgbInput').files;
-        const thermalFiles = document.getElementById('fusionThermalInput').files;
-        const sceneName = document.getElementById('fusionSceneSelect').value;
-
-        const formData = new FormData();
-        for (const file of rgbFiles) formData.append('rgb_images', file);
-        for (const file of thermalFiles) formData.append('thermal_images', file);
-        formData.append('scene_name', sceneName);
-
         const token = getToken();
+        
+        // 使用场景名称调用融合API
         const response = await fetch('/api/fusion', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ scene_name: sceneName })
         });
 
         if (!response.ok) {
@@ -413,7 +339,7 @@ async function startFusion() {
         clearInterval(progressInterval);
         progressFill.style.width = '100%';
 
-        // Display results
+        // 显示融合结果
         const fusionResultGrid = document.getElementById('fusionResultGrid');
         fusionResultGrid.innerHTML = '';
 
@@ -434,6 +360,8 @@ async function startFusion() {
 
         document.getElementById('fusionResults').classList.add('active');
         setTimeout(() => progressBar.style.display = 'none', 500);
+        
+        alert(`融合完成！\n\n成功融合 ${results.length} 对图像`);
 
     } catch (error) {
         clearInterval(progressInterval);
@@ -441,34 +369,10 @@ async function startFusion() {
         alert('图像融合失败: ' + error.message);
         progressBar.style.display = 'none';
     } finally {
+        fusionBtn.disabled = false;
+        fusionBtn.innerHTML = '开始图像融合';
         checkFusionReady();
     }
 }
-
-/**
- * Setup drag and drop for file upload
- */
-function setupDragDrop(box, input, previewId) {
-    box.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        box.classList.add('dragover');
-    });
-
-    box.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        box.classList.remove('dragover');
-    });
-
-    box.addEventListener('drop', (e) => {
-        e.preventDefault();
-        box.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            input.files = files;
-            handleFusionFileSelection(input, previewId);
-        }
-    });
-}
-
 
 // ========== 演示数据加载功能 ==========

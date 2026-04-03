@@ -4,6 +4,7 @@
  */
 
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 // Import Three.js modules
 import * as THREE from 'three';
@@ -18,7 +19,7 @@ export function loadReconstructionContent() {
     mainContent.innerHTML = `
         <div class="content-card">
             <div class="card-title">
-                <span>🧊</span>
+                <span>${getIcon('cube', 20)}</span>
                 <span>三维重建</span>
             </div>
 
@@ -41,16 +42,16 @@ export function loadReconstructionContent() {
 
             <!-- 重建结果 -->
             <div class="result-panel" id="reconstructionResults">
-                <div class="result-title">🧊 3D重建结果</div>
+                <div class="result-title">${getIcon('cube', 20)} 3D重建结果</div>
                 <p id="reconstructionStatus" style="text-align: center; margin-bottom: 15px; color: #666;">等待执行重建...</p>
                 
                 <div class="result-grid" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="result-item" id="colorViewerItem">
-                        <h4>🎨 彩色模型</h4>
+                        <h4>${getIcon('image', 20)} 彩色模型</h4>
                         <div id="reconstructionViewerColor" class="model-viewer">等待模型加载...</div>
                     </div>
                     <div class="result-item" id="thermalViewerItem">
-                        <h4>🌡️ 热成像模型</h4>
+                        <h4>${getIcon('thermal', 20)} 热成像模型</h4>
                         <div id="reconstructionViewerThermal" class="model-viewer">等待模型加载...</div>
                     </div>
                 </div>

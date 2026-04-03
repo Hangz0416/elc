@@ -1,6 +1,7 @@
 // 场景资产模块
 
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 // 保存所有场景数据
 let allScenes = [];
@@ -12,22 +13,22 @@ export function loadScenesContent() {
         <!-- 统计卡片 -->
         <div class="kpi-grid" style="margin-bottom: 24px;">
             <div class="kpi-card">
-                <div class="kpi-label">📦 总场景数</div>
+                <div class="kpi-label">${getIcon('box', 20)} 总场景数</div>
                 <div class="kpi-value blue" id="scenesTotalCount">0 <span style="font-size: 16px;">个</span></div>
                 <div class="kpi-trend">本月新增 0 个</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">📸 图像对数量</div>
+                <div class="kpi-label">${getIcon('camera', 20)} 图像对数量</div>
                 <div class="kpi-value green" id="scenesImagePairs">0 <span style="font-size: 16px;">对</span></div>
                 <div class="kpi-trend">已配准图像对</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">💾 存储占用</div>
+                <div class="kpi-label">${getIcon('database', 20)} 存储占用</div>
                 <div class="kpi-value orange" id="scenesStorageSize">0 <span style="font-size: 16px;">GB</span></div>
                 <div class="kpi-trend">数据集总大小</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">✅ 标定成功率</div>
+                <div class="kpi-label">${getIcon('check', 20)} 标定成功率</div>
                 <div class="kpi-value green" id="scenesCalibrationRate">100 <span style="font-size: 16px;">%</span></div>
                 <div class="kpi-trend">相机标定质量</div>
             </div>
@@ -39,18 +40,18 @@ export function loadScenesContent() {
                 <div style="display: flex; gap: 10px; flex: 1; max-width: 600px; align-items: center;">
                     <input type="text" id="sceneSearchInput" placeholder="搜索场景名称..." style="flex: 1; padding: 0 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; height: 42px; line-height: 42px; box-sizing: border-box;">
                     <button class="btn-process" style="width: auto; padding: 0 20px; height: 42px; line-height: 42px; margin: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" onclick="filterScenes()">
-                        <span style="font-size: 16px; margin-right: 5px;">🔍</span> 搜索
+                        <span style="margin-right: 5px;">${getIcon('search', 16)}</span> 搜索
                     </button>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn-process" style="width: auto; padding: 0 20px; height: 42px; line-height: 42px; margin: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" onclick="showCreateSceneModal()">
-                        <span style="font-size: 16px; margin-right: 5px;">➕</span> 新建场景
+                        <span style="margin-right: 5px;">${getIcon('plus', 16)}</span> 新建场景
                     </button>
                     <button class="btn-process" style="width: auto; padding: 0 20px; height: 42px; line-height: 42px; margin: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" onclick="showImportDatasetModal()">
-                        <span style="font-size: 16px; margin-right: 5px;">📥</span> 导入数据集
+                        <span style="margin-right: 5px;">${getIcon('download', 16)}</span> 导入数据集
                     </button>
                     <button class="btn-process" style="width: auto; padding: 0 20px; height: 42px; line-height: 42px; margin: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" onclick="refreshScenesList()">
-                        <span style="font-size: 16px; margin-right: 5px;">🔄</span> 刷新
+                        <span style="margin-right: 5px;">${getIcon('refresh', 16)}</span> 刷新
                     </button>
                 </div>
             </div>
@@ -59,7 +60,7 @@ export function loadScenesContent() {
         <!-- 场景列表 -->
         <div class="content-card">
             <div class="card-title">
-                <span>🗂️</span>
+                <span>${getIcon('scenes', 20)}</span>
                 <span>场景列表</span>
                 <span style="margin-left: auto; font-size: 14px; font-weight: normal; color: #666;">
                     <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
@@ -150,13 +151,13 @@ export function loadScenesContent() {
         <div id="importDatasetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
             <div style="background: white; border-radius: 12px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
                 <div style="padding: 20px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; font-size: 18px;">📥 导入RGBT数据集场景</h3>
+                    <h3 style="margin: 0; font-size: 18px;">${getIcon('download', 20)} 导入RGBT数据集场景</h3>
                     <button onclick="closeImportDatasetModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
                 </div>
                 <div style="padding: 24px;">
                     <div style="background: #e6f7ff; border-left: 4px solid #1890ff; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
                         <p style="margin: 0; color: #0050b3; font-size: 14px;">
-                            💡 从RGBT-Scenes数据集中导入预配准的RGB和热红外图像对，无需手动上传图片。
+                            ${getIcon('database', 16)} 从RGBT-Scenes数据集中导入预配准的RGB和热红外图像对，无需手动上传图片。
                         </p>
                     </div>
                     
@@ -236,7 +237,7 @@ async function loadScenesList() {
         if (gridView) {
             gridView.innerHTML = `
                 <div style="text-align: center; padding: 60px; color: #999;">
-                    <p style="font-size: 48px; margin-bottom: 16px;">😕</p>
+                    <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('search', 48, '#ccc')}</div>
                     <p>加载场景失败: ${error.message}</p>
                 </div>
             `;
@@ -252,7 +253,7 @@ function displayScenesGrid(scenes) {
     if (scenes.length === 0) {
         gridView.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
-                <p style="font-size: 48px; margin-bottom: 16px;">📭</p>
+                <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('box', 48, '#ccc')}</div>
                 <p style="font-size: 16px; margin-bottom: 20px;">暂无场景数据</p>
                 <button class="btn-process" style="width: auto;" onclick="showImportDatasetModal()">从数据集导入场景</button>
             </div>
@@ -261,8 +262,6 @@ function displayScenesGrid(scenes) {
     }
 
     gridView.innerHTML = scenes.map((scene, index) => {
-        const icons = ['🏢', '🏭', '🏗️', '🌆', '🏪', '🏠', '🏛️', '🏰'];
-        const icon = icons[index % icons.length];
         const colors = [
             'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -286,17 +285,17 @@ function displayScenesGrid(scenes) {
         return `
             <div class="scene-card" onclick="showSceneDetail('${scene.name}')">
                 <div class="scene-card-image" style="background: ${bgColor};">
-                    ${icon}
+                    ${getIcon('scene', 48, 'white')}
                     <div class="scene-card-badge" style="color: ${statusColor};">${status}</div>
                 </div>
                 <div class="scene-card-body">
                     <div class="scene-card-title">${scene.name}</div>
                     <div class="scene-card-meta">
-                        <span>📷 RGB: ${scene.rgb_count}</span>
-                        <span>🌡️ 热红外: ${scene.thermal_count}</span>
+                        <span>${getIcon('camera', 16)} RGB: ${scene.rgb_count}</span>
+                        <span>${getIcon('thermal', 16)} 热红外: ${scene.thermal_count}</span>
                     </div>
                     <div class="scene-card-meta">
-                        <span>💾 ${scene.size_mb}MB</span>
+                        <span>${getIcon('database', 16)} ${scene.size_mb}MB</span>
                         ${scene.has_colmap ? '<span style="color: #52c41a;">✓ COLMAP</span>' : ''}
                     </div>
                     <div class="scene-card-actions">
@@ -479,7 +478,7 @@ window.showSceneDetail = async function(sceneName) {
         if (contentEl) {
             contentEl.innerHTML = `
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #333;">📊 基本信息</h4>
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('chart', 20)} 基本信息</h4>
                     <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
                         <p style="margin: 8px 0;"><strong>场景名称:</strong> ${scene.name}</p>
                         <p style="margin: 8px 0;"><strong>创建时间:</strong> ${scene.created_at || '--'}</p>
@@ -488,7 +487,7 @@ window.showSceneDetail = async function(sceneName) {
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #333;">📸 数据统计</h4>
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('camera', 20)} 数据统计</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                         <div style="background: #e6f7ff; padding: 12px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 24px; font-weight: 600; color: #1890ff;">${scene.rgb_count}</div>
@@ -510,41 +509,75 @@ window.showSceneDetail = async function(sceneName) {
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #333;">🔧 处理状态</h4>
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('settings', 20)} 处理状态</h4>
                     <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>📷 相机标定</span>
+                            <span>${getIcon('camera', 16)} 相机标定</span>
                             ${calibrationStatus}
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>🔀 图像融合</span>
+                            <span>${getIcon('fusion', 16)} 图像融合</span>
                             ${fusionStatus}
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>🧊 三维重建</span>
+                            <span>${getIcon('cube', 16)} 三维重建</span>
                             <span style="color: #999;">- 未开始</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span>🎯 场景分割</span>
+                            <span>${getIcon('target', 16)} 场景分割</span>
                             <span style="color: #999;">- 未开始</span>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn-secondary" style="padding: 10px 20px;" onclick="closeSceneDetailModal()">关闭</button>
-                    <button class="btn-process" style="width: auto; padding: 10px 20px;" onclick="startProcessingScene('${scene.name}')">开始处理</button>
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #333;">${getIcon('upload', 20)} 批量上传图像</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <!-- RGB图像上传区 -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">RGB图像</label>
+                            <div id="rgbUploadBox-${scene.name}" style="border: 2px dashed #d9d9d9; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;">
+                                <div style="margin-bottom: 8px;">${getIcon('camera', 32, '#1890ff')}</div>
+                                <div style="color: #666; font-size: 14px;">点击或拖拽上传RGB图像</div>
+                                <div style="color: #999; font-size: 12px; margin-top: 4px;">支持 JPG, PNG, JPEG 格式</div>
+                                <input type="file" id="rgbFileInput-${scene.name}" accept=".jpg,.jpeg,.png" multiple style="display: none;">
+                            </div>
+                            <div id="rgbUploadPreview-${scene.name}" style="margin-top: 8px; font-size: 13px; color: #666;"></div>
+                        </div>
+                        
+                        <!-- 热红外图像上传区 -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">热红外图像</label>
+                            <div id="thermalUploadBox-${scene.name}" style="border: 2px dashed #d9d9d9; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;">
+                                <div style="margin-bottom: 8px;">${getIcon('thermal', 32, '#fa8c16')}</div>
+                                <div style="color: #666; font-size: 14px;">点击或拖拽上传热红外图像</div>
+                                <div style="color: #999; font-size: 12px; margin-top: 4px;">支持 JPG, PNG, JPEG 格式</div>
+                                <input type="file" id="thermalFileInput-${scene.name}" accept=".jpg,.jpeg,.png" multiple style="display: none;">
+                            </div>
+                            <div id="thermalUploadPreview-${scene.name}" style="margin-top: 8px; font-size: 13px; color: #666;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 上传进度条 -->
+                    <div id="uploadProgress-${scene.name}" style="display: none; margin-top: 16px;">
+                        <div style="background: #f0f0f0; border-radius: 4px; height: 24px; overflow: hidden; position: relative;">
+                            <div id="uploadProgressBar-${scene.name}" style="background: linear-gradient(90deg, #1890ff 0%, #52c41a 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            <div id="uploadProgressText-${scene.name}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; color: #333; font-weight: 500;">0%</div>
+                        </div>
+                    </div>
                 </div>
             `;
+            
+            // 初始化上传功能（在HTML设置后调用）
+            setupUploadHandlers(scene.name);
         }
     } catch (error) {
         console.error('加载场景详情失败:', error);
         if (contentEl) {
             contentEl.innerHTML = `
                 <div style="text-align: center; padding: 60px; color: #999;">
-                    <p style="font-size: 48px; margin-bottom: 16px;">😕</p>
+                    <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('search', 48, '#ccc')}</div>
                     <p>加载场景详情失败: ${error.message}</p>
-                    <button class="btn-secondary" style="margin-top: 20px;" onclick="closeSceneDetailModal()">关闭</button>
                 </div>
             `;
         }
@@ -597,7 +630,7 @@ async function loadDatasetScenes() {
         if (scenes.length === 0) {
             listEl.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #999;">
-                    <p style="font-size: 48px; margin-bottom: 16px;">📭</p>
+                    <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('box', 48, '#ccc')}</div>
                     <p>未找到RGBT数据集场景</p>
                     <p style="font-size: 14px; margin-top: 8px;">请确保 data/RGBT-Scenes/RGBT-Scenes 目录存在</p>
                 </div>
@@ -617,10 +650,10 @@ async function loadDatasetScenes() {
                         </div>
                         <div style="display: flex; gap: 16px; margin-bottom: 12px; font-size: 14px; color: #666;">
                             <div>
-                                <span style="color: #1890ff;">📷</span> RGB: ${scene.rgb_count}
+                                ${getIcon('camera', 16, '#1890ff')} RGB: ${scene.rgb_count}
                             </div>
                             <div>
-                                <span style="color: #fa8c16;">🌡️</span> 热红外: ${scene.thermal_count}
+                                ${getIcon('thermal', 16, '#fa8c16')} 热红外: ${scene.thermal_count}
                             </div>
                         </div>
                         <button class="btn-process" style="width: 100%; padding: 8px;" 
@@ -637,7 +670,7 @@ async function loadDatasetScenes() {
         console.error('加载数据集场景失败:', error);
         listEl.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #999;">
-                <p style="font-size: 48px; margin-bottom: 16px;">😕</p>
+                <div style="font-size: 48px; margin-bottom: 16px;">${getIcon('search', 48, '#ccc')}</div>
                 <p>加载失败: ${error.message}</p>
             </div>
         `;
@@ -684,5 +717,182 @@ window.importDatasetScene = async function(sceneName) {
         alert('导入场景失败: ' + error.message);
         btn.disabled = false;
         btn.textContent = originalText;
+    }
+}
+
+
+// 设置上传处理器
+function setupUploadHandlers(sceneName) {
+    const rgbInput = document.getElementById(`rgbFileInput-${sceneName}`);
+    const thermalInput = document.getElementById(`thermalFileInput-${sceneName}`);
+    const rgbBox = document.getElementById(`rgbUploadBox-${sceneName}`);
+    const thermalBox = document.getElementById(`thermalUploadBox-${sceneName}`);
+    
+    if (!rgbInput || !thermalInput || !rgbBox || !thermalBox) {
+        console.error('上传元素未找到:', { rgbInput, thermalInput, rgbBox, thermalBox });
+        return;
+    }
+    
+    console.log('准备绑定上传事件，场景名称:', sceneName);
+    
+    // 点击上传区域触发文件选择
+    rgbBox.addEventListener('click', () => {
+        console.log('RGB上传区域被点击');
+        rgbInput.click();
+    });
+    
+    thermalBox.addEventListener('click', () => {
+        console.log('热红外上传区域被点击');
+        thermalInput.click();
+    });
+    
+    // 文件选择处理
+    rgbInput.addEventListener('change', async (e) => {
+        console.log('RGB文件已选择:', e.target.files.length, '个文件');
+        if (e.target.files.length > 0) {
+            await uploadImages(sceneName, 'rgb', e.target.files);
+        }
+    });
+    
+    thermalInput.addEventListener('change', async (e) => {
+        console.log('热红外文件已选择:', e.target.files.length, '个文件');
+        if (e.target.files.length > 0) {
+            await uploadImages(sceneName, 'thermal', e.target.files);
+        }
+    });
+    
+    // 拖拽上传 - RGB
+    setupDragDropUpload(rgbBox, rgbInput, sceneName, 'rgb');
+    
+    // 拖拽上传 - 热红外
+    setupDragDropUpload(thermalBox, thermalInput, sceneName, 'thermal');
+}
+
+// 设置拖拽上传
+function setupDragDropUpload(box, input, sceneName, imageType) {
+    box.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        box.style.borderColor = imageType === 'rgb' ? '#1890ff' : '#fa8c16';
+        box.style.background = imageType === 'rgb' ? '#e6f7ff' : '#fff7e6';
+    });
+    
+    box.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        box.style.borderColor = '#d9d9d9';
+        box.style.background = '#fafafa';
+    });
+    
+    box.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        box.style.borderColor = '#d9d9d9';
+        box.style.background = '#fafafa';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            console.log('拖拽上传文件:', files.length, '个', imageType, '图像');
+            await uploadImages(sceneName, imageType, files);
+        }
+    });
+}
+
+// 上传图像
+async function uploadImages(sceneName, imageType, files) {
+    const previewEl = document.getElementById(`${imageType}UploadPreview-${sceneName}`);
+    const progressEl = document.getElementById(`uploadProgress-${sceneName}`);
+    const progressBar = document.getElementById(`uploadProgressBar-${sceneName}`);
+    const progressText = document.getElementById(`uploadProgressText-${sceneName}`);
+    
+    if (!previewEl || !progressEl || !progressBar || !progressText) return;
+    
+    // 验证文件格式
+    const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+    const invalidFiles = [];
+    
+    for (let file of files) {
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (!allowedExtensions.includes(ext)) {
+            invalidFiles.push(file.name);
+        }
+    }
+    
+    if (invalidFiles.length > 0) {
+        alert(`以下文件格式不支持，仅支持 JPG, PNG, JPEG 格式：\n${invalidFiles.join('\n')}`);
+        return;
+    }
+    
+    // 显示上传进度
+    progressEl.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.textContent = '准备上传...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('image_type', imageType);
+        
+        for (let file of files) {
+            formData.append('images', file);
+        }
+        
+        // 模拟进度更新
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                progressText.textContent = progress + '%';
+            }
+        }, 200);
+        
+        const response = await fetch(`/api/scenes/${sceneName}/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: formData
+        });
+        
+        clearInterval(progressInterval);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || '上传失败');
+        }
+        
+        const result = await response.json();
+        
+        // 完成进度
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+        
+        // 显示结果
+        const typeText = imageType === 'rgb' ? 'RGB' : '热红外';
+        if (result.failed_count > 0) {
+            const failedFiles = result.files.filter(f => f.status === 'failed');
+            const failedNames = failedFiles.map(f => `${f.filename}: ${f.message}`).join('\n');
+            alert(`${typeText}图像上传完成！\n\n成功: ${result.uploaded_count} 张\n失败: ${result.failed_count} 张\n\n失败文件:\n${failedNames}`);
+        } else {
+            alert(`${typeText}图像上传成功！\n\n已上传 ${result.uploaded_count} 张图像`);
+        }
+        
+        // 更新预览
+        previewEl.textContent = `已选择 ${files.length} 个文件`;
+        
+        // 隐藏进度条
+        setTimeout(() => {
+            progressEl.style.display = 'none';
+        }, 1000);
+        
+        // 刷新场景详情
+        setTimeout(() => {
+            showSceneDetail(sceneName);
+        }, 1500);
+        
+    } catch (error) {
+        console.error('上传失败:', error);
+        alert('上传图像失败: ' + error.message);
+        progressEl.style.display = 'none';
     }
 }

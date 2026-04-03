@@ -1,5 +1,6 @@
 // 系统管理模块
 import { getToken } from './core.js';
+import { getIcon } from '../icons.js';
 
 let adminCurrentPage = { users: 1, logs: 1 };
 const adminPageSize = 20;
@@ -9,7 +10,7 @@ export function loadAdminContent() {
     mainContent.innerHTML = `
         <div class="content-card">
             <div class="card-title">
-                <span>⚙️</span>
+                <span>${getIcon('settings', 20)}</span>
                 <span>系统管理</span>
             </div>
             
